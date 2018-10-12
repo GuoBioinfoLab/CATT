@@ -1,7 +1,9 @@
 # CATT
-An ultra-sensitive and precise tool for characterizing T cell CDR3 sequences in TCR-seq and RNA-seq data. [http://bioinfor.life.hust.edu.cn/CATT](http://bioinfor.life.hust.edu.cn/CATT)
+An ultra-sensitive and precise tool for characterizing T cell CDR3 sequences in TCR-seq and RNA-seq data. The tool can be found in:
 
+* HomePage: [http://bioinfo.life.hust.edu.cn/CATT](http://bioinfo.life.hust.edu.cn/CATT)
 
+* Github: https://github.com/GuoBioinfoLab/CATT
 
 ## Overview
 
@@ -29,6 +31,9 @@ The tool has the following feature:
 
 ### Manual install
 1. Download latest stable CATT version from the [mainpage](http://23.106.150.157/CATT_1.0.zip) or clone the repository from Github
+```
+git clone https://github.com/GuoBioinfoLab/CATT.git
+```
 
 2. unzip the archive 
 ```
@@ -40,10 +45,13 @@ cd catt-*
 pip install -r requirements.txt
 ```
 or manually install the requirements:
-    * Biopython >=1.71
-    * pandas >=0.23.1
-    * cffi >= 1.11.5
+
+* Biopython >=1.71
+* pandas >=0.23.1
+* cffi >= 1.11.5
+
 4. configure the bowtie2 path samtools path in `initialize.py` if they are not in environment variables 
+
 ```
 bowtie2_path = "/path/to/bowtie2"
 bowtie2_build_path = "/path/to/bowtie2-build"
