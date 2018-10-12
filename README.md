@@ -44,15 +44,15 @@ or manually install the requirements:
     * pandas >=0.23.1
     * cffi >= 1.11.5
 4. configure the bowtie2 path samtools path in `initialize.py` if they are not in environment variables 
-    ```
-    bowtie2_path = "/path/to/bowtie2"
-    bowtie2_build_path = "/path/to/bowtie2-build"
-    samtool_path = "/path/to/samtools"
-    ```
+```
+bowtie2_path = "/path/to/bowtie2"
+bowtie2_build_path = "/path/to/bowtie2-build"
+samtool_path = "/path/to/samtools"
+```
 5. Initialize the project 
-    ```
-    python initialize.py
-    ```
+```
+python initialize.py
+```
 
 
 
@@ -62,14 +62,15 @@ Here is a simple example usage that will extract TCR repertoire data from test s
 ```
 python catt.py -f testSample.fq -o OutputName
 ```
-and will produce a csv file (OutputName.CATT.csv) contain CDR3 sequences with their abundances, V, D and J genes and their bayes probability. The result file is like:
+CATT will outputs a csv file (OutputName.CATT.csv) contain CDR3 sequences with their abundance, V, D and J genes segment and their bayes probability. The result file is like:
 
 | CDR3seq | Probablity | V gene segmetns | D gene segments | J gene segmetns | Frequency |
 | --- | --- | --- | --- | --- | --- |
 | CASSGPSNSPLHF |0.0003 | TRBV6-6*04 | TRBD1 | TRBJ1-6*01 |14 |
+| ... |... | ... | ... | ... |... |
 
 ## Usage
-CATT can automatic detected input format, which could sam/bam, fasta/fastq format.
+CATT can automatically detecte input format, which could be sam/bam, fasta/fastq format.
 
 For single-end input:
 ```
