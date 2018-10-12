@@ -3,7 +3,7 @@ An ultra-sensitive and precise tool for characterizing T cell CDR3 sequences in 
 
 
 
-##Overview
+## Overview
 
 CATT(**C**har**A**cterzing **T**CR reper**t**oires) is a tool for detecting CDR3 sequences from any TCR containing raw sequencing data (including TCR-seq, RNA-seq and scRNA-seq, etc...). 
 
@@ -17,7 +17,7 @@ The tool has the following feature:
 ![](http://23.106.150.157/liuchengjiantu.jpg)
 
 
-##Installation/Download
+## Installation/Download
 
 ### Requirements
 
@@ -38,7 +38,7 @@ cd catt-*
 3. Install the requirements 
 ``` 
 pip install -r requirements.txt
-``` 
+```
 or manually install the requirements:
     * Biopython >=1.71
     * pandas >=0.23.1
@@ -66,7 +66,7 @@ and will produce a csv file (OutputName.CATT.csv) contain CDR3 sequences with th
 
 | CDR3seq | Probablity | V gene segmetns | D gene segments | J gene segmetns | Frequency |
 | --- | --- | --- | --- | --- | --- |
-| CASSGPSNSPLHF |0.0003 | TRBV6-6*04 | TRBD1 | TRBJ1-6*01 |14 |  
+| CASSGPSNSPLHF |0.0003 | TRBV6-6*04 | TRBD1 | TRBJ1-6*01 |14 |
 
 ## Usage
 CATT can automatic detected input format, which could sam/bam, fasta/fastq format.
