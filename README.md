@@ -65,7 +65,7 @@ python initialize.py
 
 
 
-##Qucik Start
+## Qucik Start
 Here is a simple example usage that will extract TCR repertoire data from test sample
 ```
 python catt.py -f testSample.fq -o OutputName
