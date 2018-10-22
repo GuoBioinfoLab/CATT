@@ -5,13 +5,15 @@ An ultra-sensitive and precise tool for characterizing T cell CDR3 sequences in 
 
 * Github: https://github.com/GuoBioinfoLab/CATT
 
+
+
 ## Overview
 
 CATT(**C**har**A**cterzing **T**CR reper**t**oires) is a tool for detecting CDR3 sequences from any TCR containing raw sequencing data (including TCR-seq, RNA-seq and scRNA-seq, etc...). 
 
 The tool has the following feature:
-* easy to use: CATT employs a totally data-driven algorithm, which is self-adaption to input data without any additional parameters.
-* Precisely and efficiently extract T cell CDR3 sequences from most types of TCR containing raw sequencing data. Based on particular assembly, CATT could recover plenty of CDR3 sequences even from short reads.
+* Easy to use: CATT employs a totally data-driven algorithm, which is self-adaption to input data without any additional parameters.
+* Precisely and efficiently extract T cell CDR3 sequences from most types of TCR containing raw sequencing data. Based on specially designed assembly, CATT could recover more CDR3 sequences than other tools even from short reads.
 
 
 
@@ -92,4 +94,9 @@ python catt.py [option] -1 inputFile1 -2 inputFile2 -o outputName
 
 
 option:
+
 * `-t {numberOfThreads}`: number of alignment threads. default: 16
+
+---
+
+Copyright © [Guo Lab](http://bioinfo.life.hust.edu.cn/) , [College of Life Science and Technology](http://life.hust.edu.cn/) , [HUST](http://www.hust.edu.cn/) , China
