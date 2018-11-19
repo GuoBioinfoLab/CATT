@@ -340,6 +340,28 @@ def SimpleExtract_WS(seq):
 
     return res
 
+def SimpleExtract_WS_sc(seq):
+    res = []
+    fit = re.finditer
+    C = [m.end() - 2 for m in fit('[FILQRS]{1}C[AS]{1}', seq)]
+    if len(C) < 1:
+        return []
+    F = [m.start()+1 for m in fit('[QLAYIV]{1}[YFTHI]{1}FG', seq)]
+    #F = [m.start()  for m in fit('FG', seq)]
+    if len(F) < 1:
+        return []
+
+    # change here 30=>35
+    # chensy 3.7.20187
+    for idx, xc in enumerate(C):
+        for f in F:
+            if 35 >= (f - xc + 1) >= 7 and (idx == len(C) -
+                                            1 or not 35 >= (f - C[idx + 1] + 1) >= 7):
+                res.append((seq[xc:f + 1], xc * 3, (f + 1) * 3))
+                break
+
+    return res
+
 
 import itertools
 
@@ -353,6 +375,17 @@ def ssFinder_WS(seq):
          for (group, label) in TT if len(group) > 0 for item in group]
     return [(it[0], seq[max(0, shift + it[1] - 20):(shift + it[2] + 20)], seq[shift + it[1]:shift + it[2]]) for
             (it, shift) in x]
+
+def ssFinder_WS_sc(seq):
+    os = TranslateIntoAAv2(seq)
+    # TODO(chensy) check this
+    os = [t for t in os if "*" not in t[0]]
+    TT = [(SimpleExtract_WS_sc(x[0]), x[1]) for x in os]
+    x = [(item, label)
+         for (group, label) in TT if len(group) > 0 for item in group]
+    return [(it[0], seq[max(0, shift + it[1] - 20):(shift + it[2] + 20)], seq[shift + it[1]:shift + it[2]]) for
+            (it, shift) in x]
+
 
 
 def ssFinder_WS_backup(seq):
