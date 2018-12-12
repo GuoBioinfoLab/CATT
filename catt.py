@@ -11,7 +11,6 @@ import bioTSApypy as bt
 from bioTSApypy import Myread
 from multiprocessing.dummy import Pool as ThreadPool
 from multiprocessing import Pool as TP2
-from multiprocessing import Manager
 import itertools
 from optparse import OptionParser
 import time
