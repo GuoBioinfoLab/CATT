@@ -61,18 +61,22 @@ python initialize.py
 
 ### Using Docker
 
-1. Download latest stable CATT version from the [mainpage][2] or clone the repository from Github
+Docker is a computer program that performs operating-system-level virualization. Using docker, users could easily install catt and run catt in virtual enviroment.
+
+1. Download and install Docker, [Docker Homepage](https://www.docker.com/)
+
+2. Download latest stable CATT version from the [mainpage][2] or clone the repository from Github
 ```
 git clone https://github.com/GuoBioinfoLab/CATT.git
 ```
 
-2. Unzip the archive
+3. Unzip the archive
 ```
 unzip catt-*.zip
 cd catt-*
 ```
 
-3. Build from the Dockerfile, which will create a image named catt. 
+4. Build from the Dockerfile, which will create a image named catt. 
 ```
 docker build -t catt .
 ```
