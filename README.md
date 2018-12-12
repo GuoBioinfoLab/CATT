@@ -1,7 +1,7 @@
 # CATT
-An ultra-sensitive and precise tool for characterizing T cell CDR3 sequences in TCR-seq and RNA-seq data. The tool can be found in:
+CATT: an ultra-sensitive and accurate tool for characterizing T cell CDR3 sequences in bulk and single cell TCR-Seq and RNA-Seq data. The tool can be found in:
 
-* HomePage: [http://bioinfo.life.hust.edu.cn/CATT](http://bioinfo.life.hust.edu.cn/CATT)
+* HomePage: [http://bioinfo.life.hust.edu.cn/CATT][1]
 
 * Github: https://github.com/GuoBioinfoLab/CATT
 
@@ -15,16 +15,12 @@ The tool has the following feature:
 * Easy to use: CATT employs a totally data-driven algorithm, which is self-adaption to input data without any additional parameters.
 * Precisely and efficiently extract T cell CDR3 sequences from most types of TCR containing raw sequencing data. Based on specially designed assembly, CATT could recover more CDR3 sequences than other tools even from short reads.
 
-
-
-
-![](http://23.106.150.157/liuchengjiantu.jpg)
+![][image-1]
 
 
 ## Installation/Download
 
 ### Requirements
-
 
 * Python 3.5 or higher
 * bowtie2
@@ -32,57 +28,66 @@ The tool has the following feature:
 * pypy (optional, but recommend)
 
 ### Manual install
-1. Download latest stable CATT version from the [mainpage](http://23.106.150.157/CATT_1.0.zip) or clone the repository from Github
+1. Download latest stable CATT version from the [mainpage][2] or clone the repository from Github
 ```
 git clone https://github.com/GuoBioinfoLab/CATT.git
 ```
 
-2. unzip the archive 
+2. unzip the archive
 ```
 unzip catt-*.zip
 cd catt-*
 ```
-3. Install the requirements 
+3. Install the requirements
 ``` 
 pip install -r requirements.txt
 ```
 or manually install the requirements:
+    * Biopython \>=1.71
+    * pandas \>=0.23.1
+    * cffi \>= 1.11.5
+    
+4. configure the bowtie2 path samtools path in `initialize.py` if they are not in environment variables
+    ```
+    bowtie2_path = "/path/to/bowtie2"
+    bowtie2_build_path = "/path/to/bowtie2-build"
+    samtool_path = "/path/to/samtools"
+    ```
 
-* Biopython >=1.71
-* pandas >=0.23.1
-* cffi >= 1.11.5
-
-4. configure the bowtie2 path samtools path in `initialize.py` if they are not in environment variables 
-
-```
-bowtie2_path = "/path/to/bowtie2"
-bowtie2_build_path = "/path/to/bowtie2-build"
-samtool_path = "/path/to/samtools"
-```
-5. Initialize the project 
+5. Initialize the project
 ```
 python initialize.py
 ```
 
+### Using Docker
 
-
-
-## Qucik Start
-Here is a simple example usage that will extract TCR repertoire data from test sample
+1. Download latest stable CATT version from the [mainpage][2] or clone the repository from Github
 ```
-python catt.py -f testSample.fq -o OutputName
+git clone https://github.com/GuoBioinfoLab/CATT.git
 ```
-CATT will outputs a csv file (OutputName.CATT.csv) contain CDR3 sequences with their abundance, V, D and J genes segment and their bayes probability. The result file is like:
 
-| CDR3seq | Probablity | V gene segmetns | D gene segments | J gene segmetns | Frequency |
-| --- | --- | --- | --- | --- | --- |
-| CASSGPSNSPLHF |0.0003 | TRBV6-6*04 | TRBD1 | TRBJ1-6*01 |14 |
-| ... |... | ... | ... | ... |... |
+2. Unzip the archive
+```
+unzip catt-*.zip
+cd catt-*
+```
+
+3. Build from the Dockerfile, which will create a image named catt. 
+```
+docker build -t catt .
+```
+
+### Sample Test
+We provide a test sample data `testSample.fq` for user to test their install.
+```Shell
+python catt.py -f testSample.fq -o OutPutName -t 1
+```
+If al goes well, the program will output a CSV format file with name OutPutName.CATT.csv
 
 ## Usage
-CATT can automatically detecte input format, which could be sam/bam, fasta/fastq format.
+CATT can automatically detect input format, which could be sam/bam, fasta/fastq format.
 
-For single-end input:
+For sam/bam format, single-end input:
 ```
 python catt.py [option] -f inputFile -o outputName
 ```
@@ -97,6 +102,32 @@ option:
 
 * `-t {numberOfThreads}`: number of alignment threads. default: 16
 
+
+For user install catt with docker:
+```Shell
+### For sam/bam format, single-end input:
+docker run -i -t catt /catt/catt.py [option] -f inputFile -o outputName
+### For paired-end input:
+docker run -i -t catt /catt/catt.py [option] -1 inputFile1 -2 inputFile2 -o outputName
+```
+
+####Output format
+CATT will outputs a csv file (OutputName.CATT.csv) contain CDR3 sequences with their abundance, V, D and J genes segment and their bayes probability. The result file is like:
+
+| CDR3seq | Probablity | V gene segmetns | D gene segments | J gene segmetns | Frequency |
+| --- | --- | --- | --- | --- | --- |
+| CASSGPSNSPLHF |0.0003 | TRBV6-6*04 | TRBD1 | TRBJ1-6*01 |14 |
+| ... |... | ... | ... | ... |... |
+
+
 ---
 
-Copyright © [Guo Lab](http://bioinfo.life.hust.edu.cn/) , [College of Life Science and Technology](http://life.hust.edu.cn/) , [HUST](http://www.hust.edu.cn/) , China
+Copyright © [Guo Lab][3] , [College of Life Science and Technology][4] , [HUST][5] , China
+
+[1]:	http://bioinfo.life.hust.edu.cn/CATT
+[2]:	http://23.106.150.157/CATT_1.0.zip
+[3]:	http://bioinfo.life.hust.edu.cn/
+[4]:	http://life.hust.edu.cn/
+[5]:	http://www.hust.edu.cn/
+
+[image-1]:	http://23.106.150.157/liuchengjiantu.jpg

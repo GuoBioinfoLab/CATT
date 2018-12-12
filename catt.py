@@ -1,5 +1,7 @@
+#!/catt/pypy3-v6.0.0-linux64/bin/pypy3
 import warnings
 from functools import reduce
+
 warnings.simplefilter(action='ignore', category=UserWarning)
 
 import os
@@ -9,6 +11,7 @@ import bioTSApypy as bt
 from bioTSApypy import Myread
 from multiprocessing.dummy import Pool as ThreadPool
 from multiprocessing import Pool as TP2
+from multiprocessing import Manager
 import itertools
 from optparse import OptionParser
 import time
@@ -22,6 +25,7 @@ from functools import reduce
 import re
 import gc
 from cffi import FFI
+
 ffi = FFI()
 ffi.cdef("""
 
@@ -33,6 +37,7 @@ int hammingv2( char a[], char b[], int size, int upper );
 cf = ffi.dlopen('./resource/hamming.so')
 
 the_ERR = 0.998
+singlemode = False
 
 from initialize import bowtie2_path
 from initialize import samtool_path
@@ -49,62 +54,52 @@ class ohmybam:
         self.sam_qual = qual
 
 
-class Extender:
+itemgetter = operator.itemgetter
 
-    itemgetter = operator.itemgetter
 
-    def __init__(self ):
-        pass
-
-    def update(self, freq):
-        self.freq = freq
-
-    def Extend_Left(self, seq, kmer=25):
-        borad = 150 - len(seq)
-        bp = ['A', 'T', 'G', 'C']
-        selt = kmer - 1
-        for _ in range(borad):
-            seg = seq[0:selt].seq
-            cur_cnt = self.freq[seq[0:kmer]]
-            pos = [(self.freq[p + seg], p)
-                   for p in bp if (p + seg) in self.freq]
-            if len(pos) > 0:
-                pos.sort(reverse=True, key=self.itemgetter(0))
-                for ttf, letter in pos:
-                    if abs(ttf - cur_cnt) * 1.0 / ttf < 5:
-                        seq = letter + seq
-                        break
-                else:
-                    return seq
+def Extend_Left(seq, kmer=25):
+    borad = 150 - len(seq)
+    bp = ['A', 'T', 'G', 'C']
+    selt = kmer - 1
+    for _ in range(borad):
+        seg = seq[0:selt].seq
+        cur_cnt = global_freq[seq[0:kmer]]
+        pos = [(global_freq[p + seg], p)
+               for p in bp if (p + seg) in global_freq]
+        if len(pos) > 0:
+            pos.sort(reverse=True, key=itemgetter(0))
+            for ttf, letter in pos:
+                if abs(ttf - cur_cnt) * 1.0 / ttf < 5:
+                    seq = letter + seq
+                    break
             else:
-                break
-        return seq
+                return seq
+        else:
+            break
+    return seq
 
-    def Extend_Right(self, seq, kmer=25):
-        borad = 150 - len(seq)
-        bp = ['A', 'T', 'G', 'C']
-        selt = 1 - kmer
-        for _ in range(borad):
-            seg = seq[selt:].seq
-            cur_cnt = self.freq[seq[25:]]
-            pos = [(self.freq[seg + p], p)
-                   for p in bp if (seg + p) in self.freq]
-            if len(pos) > 0:
-                # accS = sum([x[0] for x in pos])*1.0
-                pos.sort(reverse=True, key=self.itemgetter(0))
-                for ttf, letter in pos:
-                    if abs(ttf - cur_cnt) * 1.0 / ttf < 5:
-                        seq = seq + letter
-                        break
-                else:
-                    return seq
+
+def Extend_Right(seq, kmer=25):
+    borad = 150 - len(seq)
+    bp = ['A', 'T', 'G', 'C']
+    selt = 1 - kmer
+    for _ in range(borad):
+        seg = seq[selt:].seq
+        cur_cnt = global_freq[seq[25:]]
+        pos = [(global_freq[seg + p], p)
+               for p in bp if (seg + p) in global_freq]
+        if len(pos) > 0:
+            # accS = sum([x[0] for x in pos])*1.0
+            pos.sort(reverse=True, key=itemgetter(0))
+            for ttf, letter in pos:
+                if abs(ttf - cur_cnt) * 1.0 / ttf < 5:
+                    seq = seq + letter
+                    break
             else:
-                break
-        return seq
-
-exter = Extender()
-Extend_Right = exter.Extend_Right
-Extend_Left = exter.Extend_Left
+                return seq
+        else:
+            break
+    return seq
 
 
 def getreadstart(ct):
@@ -135,7 +130,6 @@ def getlength(ct):
 
 
 def alignfastq(fastq, ref, fasta_flag, tmp_name, aligner='bowtie2'):
-
     # input: fastq file, reference file
     # return: path of the bam file for map reads
     # 10.30 origin -L 7
@@ -145,7 +139,7 @@ def alignfastq(fastq, ref, fasta_flag, tmp_name, aligner='bowtie2'):
             -U %s --no-unal -S %s.sam" % (
                 bowtie2_path, fasta_flag, ref, fastq, tmp_name))
 
-    os.system(f"{samtool_path} view -u -F 4 -b -S {tmp_name}.sam > {tmp_name}.mapped.bam ")
+    os.system(f"{samtool_path} view -F 4 -b -S {tmp_name}.sam > {tmp_name}.mapped.bam ")
     os.system("rm %s.sam" % tmp_name)
     return "%s.mapped.bam" % tmp_name
 
@@ -230,19 +224,6 @@ def BreakIntoKmer(AAseq, kmer=25, step=1):
     return res
 
 
-def parllBreak(total, kmer=25, step=1):
-
-    zzr = [BreakIntoKmer(x, kmer, step) for x in total]
-    return Counter(itertools.chain.from_iterable(zzr))
-
-def parllExtendLeft( SegPart ):
-
-    return list(map(Extend_Left, SegPart))
-
-def parllExtendRight( SegPart ):
-
-    return list(map(Extend_Right, SegPart))
-
 def selfLog(msg):
     print(time.ctime(time.time()) + "]     %s" % msg)
 
@@ -305,7 +286,7 @@ def input_convert(args, input_file, input_file2=None):
 
         fasta_flag = " "
         if 'fasta' in input_file or 'fa.gz' in input_file[-6:
-                                                          ] or 'fasta.gz' in input_file[-9:] or 'fa' in input_file[-3:]:
+                                               ] or 'fasta.gz' in input_file[-9:] or 'fa' in input_file[-3:]:
             fasta_flag = '-f'
 
         # Recommand G,1,1 for TCR-seq
@@ -367,46 +348,16 @@ def input_convert(args, input_file, input_file2=None):
         share_name = set([line.rstrip() for line in instream])
         os.system(f"rm {tmp_name}.v.name.list {tmp_name}.j.name.list")
 
-        #share_name = set([align.sam_qname for align in f1]) & set([align.sam_qname for align in f2])
+        # share_name = set([align.sam_qname for align in f1]) & set([align.sam_qname for align in f2])
         full_reads = dict()
         for xx in [vbam[idx], jbam[idx]]:
             opf = pybam.read(xx)
 
-            def partitioning(file_name, threads_num):
-                with open(file_name, 'r') as fd:
-                    fd.seek(0, 2)
-                    file_size = fd.tell()
-                    block_size = file_size // threads_num
-                return [(i*(block_size+1), min(i*(block_size+1)+block_size, file_size-1)) for i in range(0, threads_num+1) if i*(block_size+1) < file_size]
-
-            def threadread( start, end, file_name ):
-                class REED:
-                    def __init__(self, line):
-                        self.sam_seq = line[9]
-                        self.sam_flag = line[1]
-                        self.sam_cigar_list = line[5]
-                        self.sam_rname = line[2]
-                        self.sam_pos0 = line[3]
-                        self.sam_qual = line[10]
-
-                with open(file_name, 'r') as fd:
-                    if start != 0:
-                        fd.seek(start-1)
-                        if fd.read(1) != '\n':
-                            line = fd.readline()
-                            start = fd.tell()
-                    fd.seek(start)
-                    while(start <= end):
-                        line = fd.readline()
-                        if line[0]!='@':
-                            yield REED(line.split('\t'))
-                        start = fd.tell()
-
-
             for alignment in opf:
                 if alignment.sam_qname in share_name:
                     full_reads.setdefault(alignment.sam_qname, []).append(ohmybam(
-                        alignment.sam_seq, alignment.sam_flag, alignment.sam_cigar_list, alignment.sam_rname, alignment.sam_pos0, alignment.sam_qual
+                        alignment.sam_seq, alignment.sam_flag, alignment.sam_cigar_list, alignment.sam_rname,
+                        alignment.sam_pos0, alignment.sam_qual
                     ))
                 else:
                     flag, rname, seq, cigar_list, r_start, qual = \
@@ -472,7 +423,7 @@ def getsBypattern(pattern, ll):
 
 def myc(n, k):
     return reduce(operator.mul, range(n - k + 1, n + 1)) / \
-        reduce(operator.mul, range(1, k + 1))
+           reduce(operator.mul, range(1, k + 1))
 
 
 def fac(n):
@@ -480,18 +431,18 @@ def fac(n):
 
 
 def absorb_v4(ss, the_ERR):
-
     res = []
     ss = sorted(list(ss.items()), key=lambda x: x[1], reverse=True)
     if len(ss) == 1:
         return [ss[0][0].seq], {}
     the_lgt = len(ss[0][0].seq) - 6
-    labuda = (1 - the_ERR)**the_lgt
+    labuda = (1 - the_ERR) ** the_lgt
+
+
     thresold = max(1, round(ss[0][1] * (1 - labuda) / the_lgt / 3))
 
     one = [x for x in ss if x[1] <= thresold]
     none = [x for x in ss if x[1] > thresold]
-
 
     if len(one) < 1:
         return [x[0].seq for x in none], {}
@@ -504,8 +455,8 @@ def absorb_v4(ss, the_ERR):
     for seq in fasta_none:
         trees[seq] = []
 
-    uplimit = [labuda**i / myc(the_lgt, i) / fac(i) /
-               3**i for i in range(1, 7)]
+    uplimit = [labuda ** i / myc(the_lgt, i) / fac(i) /
+               3 ** i for i in range(1, 7)]
     res.extend([x[0].seq for x in none])
     upper = 0
     for fasta_x, xc in one:
@@ -515,7 +466,7 @@ def absorb_v4(ss, the_ERR):
 
         for y, yc in fasta_none:
 
-            upper = [abs(xc - yc*val) for idx, val in enumerate(uplimit)]
+            upper = [abs(xc - yc * val) for idx, val in enumerate(uplimit)]
             upper = upper.index(min(upper)) + 1
 
             if cf.hammingv2(x, y, the_lgt + 6, upper) == 1:
@@ -549,8 +500,8 @@ def absorb_v4(ss, the_ERR):
             return cnt / prob
 
         leafs.sort(key=lambda x: cal_prob(x))
-        #import pdb
-        #pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         root = str(root, 'utf-8')
         for leaf, cnt in leafs:
             if curr + cnt < upper:
@@ -583,6 +534,10 @@ def parll(x):
 
 
 def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
+    # AAseq: CDR3 AA seq
+    # NNseq: the CDR3 contain read seq
+    # Corseq: corrsponding NN seq of CDR3
+
     selfLog("Annonating")
     gc.collect()
     AAseq = list(AAseq)
@@ -602,7 +557,7 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
                 f"{bowtie2_path} --score-min G,1,3 -i S,1,0.5 -N 1 --quiet -D 20 -R 3 \
                 --local -f -L 4 -p 32 --no-unal -x {ref} -U {f_output} -S {f_pfx}.{seg}.sam")
         os.system(
-            f"{samtool_path} view -u -S -b -F 4 {f_pfx}.{seg}.sam > {f_pfx}.{seg}.bam")
+            f"{samtool_path} view  -S -b -F 4 {f_pfx}.{seg}.sam > {f_pfx}.{seg}.bam")
 
     def interrupt(pfx, args):
 
@@ -612,7 +567,7 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
         tab.to_csv(args.prefix + ".CATT.csv")
 
         if os.path.exists(f"{args.prefix}.pre.annotated.fa"):
-           os.system(f"rm {args.prefix}.pre.annotated.fa")
+            os.system(f"rm {args.prefix}.pre.annotated.fa")
         for p1 in ['V', 'J']:
             for p2 in ['bam', 'sam']:
                 os.system(f"rm {pfx}.{p1}.{p2}")
@@ -635,8 +590,8 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
     output = args.prefix + '.pre.annotated.fa'
     bt.ListToFasta(res, output, mode='w')
 
-    map2align(args.vregion+".FS", output, pfx, 'V')
-    map2align(args.jregion+".FS", output, pfx, 'J')
+    map2align(args.vregion + ".FS", output, pfx, 'V')
+    map2align(args.jregion + ".FS", output, pfx, 'J')
 
     if args.chain in ['TRB', 'TRD']:
         map2align(args.dregion, output, pfx, 'D')
@@ -659,7 +614,7 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
                 tableItem[int(qname)].append(rname.split('|')[1])
 
     output = pd.DataFrame()
-    whole = list(filter(lambda x: len(x) > 2, tableItem.values()))
+    whole = list(filter(lambda x: len(x) > 3, tableItem.values()))
 
     try:
         if args.debug:
@@ -670,8 +625,17 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
         print('pack error')
         pass
 
-    if not args.error_check:
-        selfLog("Error Correcting")
+    selfLog("Error Correcting")
+
+    if singlemode:
+        selfLog("Its single cell mode !")
+        ss = Counter([nb[1].seq for nb in whole]).most_common()
+        the_lgt = len(ss[0][0]) - 6
+        labuda = (1 - the_ERR) ** the_lgt
+        thresold = max(1, round(ss[0][1] * (1 - labuda) / the_lgt ) )
+        select = set([x[0] for x in ss if x[1] > thresold])
+        seq2seq = {}
+    else:
         gp = {}
         # TODO(chensy)fix there
         for nb in whole:
@@ -687,14 +651,14 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
                     seq2seq.update(x[1])
                 except BaseException:
                     pass
-        new_whole = []
-        for x in whole:
-            if x[1].seq in select:
-                new_whole.append(x)
-            elif x[1].seq in seq2seq:
-                x[0] = bt.TranslateIntoAAv2(seq2seq[x[1].seq])[0][0]
-                new_whole.append(x)
-        whole = new_whole
+    new_whole = []
+    for x in whole:
+        if x[1].seq in select:
+            new_whole.append(x)
+        elif x[1].seq in seq2seq:
+            x[0] = bt.TranslateIntoAAv2(seq2seq[x[1].seq])[0][0]
+            new_whole.append(x)
+    whole = new_whole
 
     class BayesCls:
         def __init__(self):
@@ -715,12 +679,12 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
     output['CDR3seq'] = list([val[0] for val in whole])
     output['Probability'] = [round(bayes_ins.prob(seq), 4) for seq in output['CDR3seq']]
     output['V-region'] = list([getsBypattern('%sV' %
-                                             args.chain, val) for val in whole])
+                                             args.chain, val[2:]) for val in whole])
     if args.chain in ['TRB', 'TRD']:
         output['D-region'] = list([getsBypattern('%sD' %
-                                                 args.chain, val) for val in whole])
+                                                 args.chain, val[2:]) for val in whole])
     output['J-region'] = list([getsBypattern('%sJ' %
-                                             args.chain, val) for val in whole])
+                                             args.chain, val[2:]) for val in whole])
 
     if len(output['V-region']) < 1 or len(output['J-region']) < 1:
         interrupt(pfx, args)
@@ -739,23 +703,17 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
 
     output.sort_values(['Frequency'], ascending=False, inplace=True)
 
-    val = list(output['Frequency'])
-    tot = sum(val)
-    # if est:
-    #    val = [int(max(min(x, x * 1.0 / tot / 3 * est), 1)) for x in val]
-    output['Frequency'] = val
     output.index = list(range(1, output.shape[0] + 1))
 
     if args.sc:
-        sel = output.groupby('CDR3seq')['Frequency'].sum().to_frame().reset_index()
-        sel = list(sel[sel['Frequency'] == max(sel['Frequency'])]['CDR3seq'])
-        output = output[output['CDR3seq'].isin(sel)]
-        #pdb.set_trace()
+    #    sel = output.groupby('CDR3seq')['Frequency'].sum().to_frame().reset_index()
+    #    sel = list(sel[sel['Frequency'] == max(sel['Frequency'])]['CDR3seq'])
+    #    output = output[output['CDR3seq'].isin(sel)]
+    #    # pdb.set_trace()
         if output.shape[0] > 1:
-            output['CF'] = output['CDR3seq'].apply(lambda x: abs(15-len(x)))
-            output = output.sort_values('CF').sort_values('Probability', ascending=False).head(1)
+            output['CF'] = output['CDR3seq'].apply(lambda x: abs(15 - len(x)))
+            output = output.sort_values('CF').sort_values('Probability', ascending=False)
             del output['CF']
-
 
     output.to_csv(args.prefix + '.CATT.csv')
     if not args.debug:
@@ -773,7 +731,7 @@ def checkC(string):
     for seq, _ in ss:
         if '*' in seq:
             continue
-        #C = [ m.end() -1 for m in re.finditer('[AFILMQV]{1}Y[FILQRS]{1}C',seq) ]
+        # C = [ m.end() -1 for m in re.finditer('[AFILMQV]{1}Y[FILQRS]{1}C',seq) ]
         if 'C' in seq:
             return True
     else:
@@ -786,28 +744,49 @@ def checkF(string):
         # if '*' in seq or len(seq)<20: ????
         if '*' in seq or len(seq) < 20:
             continue
-        #F = [m.start() for m in re.finditer('FG[A-Z]{1}G', seq)]
+        # F = [m.start() for m in re.finditer('FG[A-Z]{1}G', seq)]
         if 'F' in seq:
             return True
     else:
         return False
 
 
+aV = []
+aJ = []
+assembly_reads = []
+global_freq = Counter()
+
+
+def parllExtendLeft(idx_stepLL):
+    idx, stepLL = idx_stepLL
+    return list(map(Extend_Left, aV[idx:idx + stepLL]))
+
+    # return list(map(Extend_Left, SegPart))
+
+
+def parllExtendRight(idx_stepLL):
+    idx, stepLL = idx_stepLL
+    return list(map(Extend_Left, aV[idx:idx + stepLL]))
+
+
+def parllBreak(idx_stepLL):
+    idx, stepLL = idx_stepLL
+    #for x in assembly_reads[idx:idx+stepLL]:
+    #    global_freq.update(BreakIntoKmer(x, 25, 1))
+    zzr = [BreakIntoKmer(x, 25, 1) for x in assembly_reads[idx:idx + stepLL]]
+    return Counter(itertools.chain.from_iterable(zzr))
+
+
 def catt(Vpart, Jpart, args, err_rate):
-
-    gc.collect()
-
     selfLog("Searching from full candidated reads")
     selfLog("Serach Range %d " % (len(Vpart) + len(Jpart)))
 
     pool = ThreadPool(args.thread)
 
     # find CDR3 sequence
-    if args.sc:
-        finder = bt.ssFinder_WS_sc
-        selfLog("Using Single Cell Mode")
-    else:
-        finder = bt.ssFinder_WS
+    finder = bt.ssFinder_WS
+
+    global aV, aJ, assembly_reads
 
     insV = list(map(finder, Vpart))
     insJ = list(map(finder, Jpart))
@@ -840,24 +819,22 @@ def catt(Vpart, Jpart, args, err_rate):
         selfLog("  --Breaking into Kmer")
 
         the_kmer = args.kmer
-        stepLL = int(len(assembly_reads) / 8) if len(assembly_reads) > 1000 else len(assembly_reads)
+        stepLL = len(assembly_reads) // args.thread if len(assembly_reads) > 1000 else len(assembly_reads)
         with TP2(args.thread) as real_pool:
-            zzr = real_pool.map(parllBreak, [assembly_reads[idx:idx + stepLL]
-                                         for idx in range(0, len(assembly_reads), stepLL)])
-        #exter = Extender(reduce(lambda x, y: x + y, zzr, Counter()))
-        exter.update(reduce(lambda x, y: x + y, zzr, Counter()))
+            zzr = real_pool.map(parllBreak, [(idx, idx + stepLL)
+                                             for idx in range(0, len(assembly_reads), stepLL)])
+        global_freq.update(reduce(lambda x, y: x + y, zzr, Counter()))
 
         # buildGraph
 
         selfLog("  --Extending")
 
-
-
         with TP2(args.thread) as real_pool:
             stepLL = len(aV) // args.thread if len(aV) > 100000 else len(aV)
-            resV = list(real_pool.imap_unordered(parllExtendRight, [ aV[idx:idx+stepLL] for idx in range(0, len(aV), stepLL)]))
+            resV = list(real_pool.map(parllExtendRight, [(idx, idx + stepLL) for idx in range(0, len(aV), stepLL)]))
+            # resV = list(real_pool.map(parllExtendRight, [aV[idx:idx+stepLL] for idx in range(0, len(aV), stepLL)]))
             stepLL = len(aJ) // args.thread if len(aJ) > 100000 else len(aJ)
-            resJ = list(real_pool.imap_unordered(parllExtendLeft, [ aJ[idx:idx+stepLL] for idx in range(0, len(aJ), stepLL)]))
+            resJ = list(real_pool.map(parllExtendLeft, [(idx, idx + stepLL) for idx in range(0, len(aJ), stepLL)]))
         selfLog("  --Extending end")
         part2 = map(finder, [x for x in itertools.chain.from_iterable(resV + resJ) if len(x) > 30])
         part2 = list(itertools.chain.from_iterable(part2))
@@ -933,7 +910,9 @@ def MergeCSV(f1, f2, out_name):
 if __name__ == '__main__':
 
     args, _ = CommandLineParser()
+    singlemode = args.sc
     del_th = args.mistol
+
 
     def Protocol(args):
 
@@ -958,6 +937,7 @@ if __name__ == '__main__':
                     args, args.file)
 
             catt(Vpart, Jpart, args, err_rate)
+
 
     Protocol(args)
     '''
@@ -984,6 +964,5 @@ if __name__ == '__main__':
         s3.to_csv("%s.CATT.csv" % org_prefix)
         # os.system("rm %s.annotated.CATT.csv %s.normal.annotated.CATT.csv" % (args.prefix, args.prefix))
     '''
-
 
     selfLog("Program End")

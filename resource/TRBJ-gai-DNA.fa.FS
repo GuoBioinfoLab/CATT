@@ -1,4 +1,5 @@
->K02545|TRBJ1-1*01|Homo sapiens|F|J-REGION|749..796|48 nt|3| | | | |48+0=48| | | tgaacactgaagctttctttggacaaggcaccagactcacagttgtag
+>K02545|TRBJ1-1*01|Homo sapiens|F|J-REGION|749..796|48 nt|3| | | | |48+0=48| | |
+tgaacactgaagctttctttggacaaggcaccagactcacagttgtag
 >K02545|TRBJ1-2*01|Homo sapiens|F|J-REGION|886..933|48 nt|3| | | | |48+0=48| | |
 ctaactatggctacaccttcggttcggggaccaggttaaccgttgtag
 >M14158|TRBJ1-3*01|Homo sapiens|F|J-REGION|1499..1548|50 nt|2| | | | |50+0=50| | |
