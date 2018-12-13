@@ -714,7 +714,7 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
             output = output.sort_values('CF').sort_values('Probability', ascending=False)
             del output['CF']
 
-    output.to_csv(args.prefix + '.CATT.csv')
+    output.to_csv("/input/"+args.prefix + '.CATT.csv')
     if not args.debug:
         os.system("rm %s" % args.prefix + '.pre.annotated.fa')
 
@@ -939,29 +939,6 @@ if __name__ == '__main__':
 
 
     Protocol(args)
-    '''
-        if args.short:
-        args.short = False
-        org_prefix = args.prefix
-        args.prefix = args.prefix + '.normal'
-        Protocol(args)
-        s1 = pd.read_csv("%s.annotated.CATT.csv" % org_prefix, index_col=0)
-        s2 = pd.read_csv(
-            "%s.normal.annotated.CATT.csv" %
-            org_prefix, index_col=0)
-        os.system(
-            "rm %s.annotated.CATT.csv %s.normal.annotated.CATT.csv" %
-            (org_prefix, org_prefix))
-        s3 = pd.merge(s1,
-                      s2,
-                      on=['CDR3seq',
-                          'V-region',
-                          'D-region',
-                          'J-region',
-                          'Frequency'],
-                      how='outer')
-        s3.to_csv("%s.CATT.csv" % org_prefix)
-        # os.system("rm %s.annotated.CATT.csv %s.normal.annotated.CATT.csv" % (args.prefix, args.prefix))
-    '''
+
 
     selfLog("Program End")

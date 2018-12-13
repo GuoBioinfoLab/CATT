@@ -99,6 +99,9 @@ docker build -t catt .
 We provide a test sample data `testSample.fq` for user to test their install.
 ```Shell
 python catt.py -f testSample.fq -o OutPutName -t 1
+
+#dokcer user
+docker run -t catt /catt/catt.py -f testSample.fq -o OutPutName -t 1
 ```
 If al goes well, the program will output a CSV format file with name OutPutName.CATT.csv
 
@@ -124,10 +127,11 @@ option:
 For user install catt with docker:
 ```Shell
 ### For sam/bam format, single-end input:
-docker run -i -t catt /catt/catt.py [option] -f inputFile -o outputName
+docker run -it --rm -v $PWD:/input catt /catt/catt.py [option] -f /input/inputFile -o outputName
 ### For paired-end input:
-docker run -i -t catt /catt/catt.py [option] -1 inputFile1 -2 inputFile2 -o outputName
+docker run -it --rm -v $PWD:/input catt /catt/catt.py [option] -1 /input/inputFile1 -2 input/inputFile2 -o outputName
 ```
+Where `$PWD` is the path of folder contain your input data
 
 ####Output format
 CATT will outputs a csv file (OutputName.CATT.csv) contain CDR3 sequences with their abundance, V, D and J genes segment and their bayes probability. The result file is like:
