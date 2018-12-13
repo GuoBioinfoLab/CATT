@@ -133,7 +133,7 @@ CATT will outputs a csv file (OutputName.CATT.csv) contain CDR3 sequences with t
 Copyright © [Guo Lab][3] , [College of Life Science and Technology][4] , [HUST][5] , China
 
 [1]:	http://bioinfo.life.hust.edu.cn/CATT
-[2]:	http://23.106.150.157/CATT_1.0.zip
+[2]:	http://144.34.223.36/catt/CATT-master.zip
 [3]:	http://bioinfo.life.hust.edu.cn/
 [4]:	http://life.hust.edu.cn/
 [5]:	http://www.hust.edu.cn/
