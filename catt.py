@@ -714,7 +714,7 @@ def annonation(args, err_rate, AAseq, NNseq, CorSeq, est=None):
             output = output.sort_values('CF').sort_values('Probability', ascending=False)
             del output['CF']
 
-    output.to_csv("/input/"+args.prefix + '.CATT.csv')
+    output.to_csv("/output/"+args.prefix + '.CATT.csv')
     if not args.debug:
         os.system("rm %s" % args.prefix + '.pre.annotated.fa')
 

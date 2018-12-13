@@ -78,9 +78,9 @@ docker build -t catt .
     pip install -r requirements.txt
     ```
     or manually install the requirements:
-        * Biopython \>=1.71
-        * pandas \>=0.23.1
-        * cffi \>= 1.11.5
+    *   Biopython \>=1.71
+    *   pandas \>=0.23.1
+    *   cffi \>= 1.11.5
     
 6. configure the bowtie2 path samtools path in `initialize.py` if they are not in environment variables
     ```
@@ -127,9 +127,9 @@ option:
 For user install catt with docker:
 ```Shell
 ### For sam/bam format, single-end input:
-docker run -it --rm -v $PWD:/input catt /catt/catt.py [option] -f /input/inputFile -o outputName
+docker run -it --rm -v $PWD:/output catt /catt/catt.py [option] -f /output/inputFile -o outputName
 ### For paired-end input:
-docker run -it --rm -v $PWD:/input catt /catt/catt.py [option] -1 /input/inputFile1 -2 input/inputFile2 -o outputName
+docker run -it --rm -v $PWD:/output catt /catt/catt.py [option] -1 /output/inputFile1 -2 output/inputFile2 -o outputName
 ```
 Where `$PWD` is the path of folder contain your input data
 
