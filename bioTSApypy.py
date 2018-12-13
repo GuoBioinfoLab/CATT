@@ -10,7 +10,7 @@ transtab = str.maketrans("TCGA", "AGCT")
 
 class Myread(object):
 
-    def __init__(self, seq, qual):
+    def __init__(self, seq, qual) :
         self.seq = seq
         self.qual = qual
 
@@ -155,6 +155,11 @@ def RemoveDuplicate(ll):
 
 
 def ListToFasta(ll, fop=None, mode='w', rname=None):
+
+    if len(ll)<1:
+        with open(fop, mode) as oup:
+            pass
+
     if isinstance(ll[0], Myread):
         ll = [x.seq for x in ll]
 
@@ -383,7 +388,7 @@ def ssFinder_WS_sc(seq):
     TT = [(SimpleExtract_WS_sc(x[0]), x[1]) for x in os]
     x = [(item, label)
          for (group, label) in TT if len(group) > 0 for item in group]
-    return [(it[0], seq[max(0, shift + it[1] - 20):(shift + it[2] + 20)], seq[shift + it[1]:shift + it[2]]) for
+    return [(it[0], seq[max(0, shift + it[1] - 30):(shift + it[2] + 20)], seq[shift + it[1]:shift + it[2]]) for
             (it, shift) in x]
 
 

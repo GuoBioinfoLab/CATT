@@ -20,14 +20,39 @@ The tool has the following feature:
 
 ## Installation/Download
 
-### Requirements
+### Using Docker (recommended)
+
+Docker is a computer program that performs operating-system-level virualization. Using docker, users could easily install catt and run catt in virtual enviroment.
+
+1. Download and install Docker, [Docker Homepage](https://www.docker.com/)
+
+2. Download latest stable CATT version from the [mainpage][2] or clone the repository from Github
+```
+git clone https://github.com/GuoBioinfoLab/CATT.git
+```
+
+3. Unzip the archive
+```
+unzip catt-*.zip
+cd catt-*
+```
+
+4. Build from the Dockerfile, which will create a image named catt. 
+```
+docker build -t catt .
+```
+
+
+### Manual install
+
+#### Requirements
 
 * Python 3.5 or higher
 * bowtie2
 * samtools
 * pypy (optional, but recommend)
 
-### Manual install
+
 1. Download latest stable CATT version from the [mainpage][2] or clone the repository from Github
 ```
 git clone https://github.com/GuoBioinfoLab/CATT.git
@@ -59,27 +84,6 @@ or manually install the requirements:
 python initialize.py
 ```
 
-### Using Docker
-
-Docker is a computer program that performs operating-system-level virualization. Using docker, users could easily install catt and run catt in virtual enviroment.
-
-1. Download and install Docker, [Docker Homepage](https://www.docker.com/)
-
-2. Download latest stable CATT version from the [mainpage][2] or clone the repository from Github
-```
-git clone https://github.com/GuoBioinfoLab/CATT.git
-```
-
-3. Unzip the archive
-```
-unzip catt-*.zip
-cd catt-*
-```
-
-4. Build from the Dockerfile, which will create a image named catt. 
-```
-docker build -t catt .
-```
 
 ### Sample Test
 We provide a test sample data `testSample.fq` for user to test their install.

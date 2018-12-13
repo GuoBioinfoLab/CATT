@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y gcc \
                                         python \
                                         zlib1g-dev \
                                         make \
+                                        wget \
+                                        
+   && wget http://144.34.223.36/catt/bowtie2-2.3.4.3-linux-x86_64.zip \
    && tar -xjf pypy3-v6.0.0-linux64.tar.bz2 && tar -xjf samtools-1.9.tar.bz2 && unzip bowtie2-2.3.4.3-linux-x86_64.zip \
    && cd pypy3-v6.0.0-linux64/bin && cp /catt/get-pip.py ./ && ./pypy3 get-pip.py \
    && ./pip install numpy && ./pip install cython && ./pip install pandas && ./pip install biopython && ./pip install cffi \
