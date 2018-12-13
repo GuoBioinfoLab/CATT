@@ -31,13 +31,17 @@ Docker is a computer program that performs operating-system-level virualization.
 git clone https://github.com/GuoBioinfoLab/CATT.git
 ```
 
-3. Unzip the archive
+3. Unzip the archive if download from mainpage
 ```
-unzip catt-*.zip
-cd catt-*
+unzip CATT-*.zip
 ```
 
-4. Build from the Dockerfile, which will create a image named catt. 
+4. Get in to the directory
+```
+cd CATT-*
+```
+
+5. Build from the Dockerfile, which will create a image named catt. (Usually will take ~15mins, depend on network speed)
 ```
 docker build -t catt .
 ```
@@ -54,35 +58,41 @@ docker build -t catt .
 
 
 1. Download latest stable CATT version from the [mainpage][2] or clone the repository from Github
-```
-git clone https://github.com/GuoBioinfoLab/CATT.git
-```
+    ```
+    git clone https://github.com/GuoBioinfoLab/CATT.git
+    ```
 
-2. unzip the archive
-```
-unzip catt-*.zip
-cd catt-*
-```
-3. Install the requirements
-``` 
-pip install -r requirements.txt
-```
-or manually install the requirements:
-    * Biopython \>=1.71
-    * pandas \>=0.23.1
-    * cffi \>= 1.11.5
+3. Unzip the archive if download from mainpage
+    ```
+    unzip CATT-*.zip
+    ```
+
+4. Get in to the directory
+    ```
+    cd CATT-*
+    ```
+
+
+5. Install the requirements
+    ``` 
+    pip install -r requirements.txt
+    ```
+    or manually install the requirements:
+        * Biopython \>=1.71
+        * pandas \>=0.23.1
+        * cffi \>= 1.11.5
     
-4. configure the bowtie2 path samtools path in `initialize.py` if they are not in environment variables
+6. configure the bowtie2 path samtools path in `initialize.py` if they are not in environment variables
     ```
     bowtie2_path = "/path/to/bowtie2"
     bowtie2_build_path = "/path/to/bowtie2-build"
     samtool_path = "/path/to/samtools"
     ```
 
-5. Initialize the project
-```
-python initialize.py
-```
+7. Initialize the project
+    ```
+    python initialize.py
+    ```
 
 
 ### Sample Test
