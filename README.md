@@ -11,7 +11,7 @@ An ultra-sensitive and accurate tool for characterizing **T cell receptor sequen
 
 # Overview
 
-CATT(**C**har**A**cterzing **T**CR reper**t**oires) is a tool for detecting CDR3 sequences from any TCR containing raw sequencing data (including TCR-seq, RNA-seq, scRNA-seq and etc.)
+CATT(**C**har**A**cterzing **T**CR reper**t**oires) is a tool for detecting CDR3 (now also support CDR1, CDR2) sequences from any TCR containing raw sequencing data (including TCR-seq, RNA-seq, scRNA-seq and etc.)
 
 The tool has the following feature:
 
@@ -29,8 +29,8 @@ The tool has the following feature:
 Version 1.2
 
 - Change from Python to Julia, improve multi-thread performance.
-- Add support for 10X scRNA/scTCR sequencing data.
-- Add support for alpha chain, CD1, and CD2
+- Add support for 10X scTCR sequencing data.
+- Add support for alpha chain, CDR1, and CDR2
 
 # Installation
 
