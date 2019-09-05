@@ -4,14 +4,18 @@
 
 # **CATT**
 
-An ultra-sensitive and accurate tool for characterizing **T cell receptor sequences** in bulk and single cell TCR-Seq and RNA-Seq data (and any TCR containing sequencing data). The tool can be found in:
+---
 
-- HomePage: [http://bioinfo.life.hust.edu.cn/CATT](http://bioinfo.life.hust.edu.cn/CATT)
+An ultra-sensitive and accurate tool for characterizing **T cell receptor sequence** in bulk and single cell TCR-Seq and RNA-Seq data. The tool can be found in:
+
+- HomePage: [http://bioinfo.life.hust.edu.cn/CATT/homepage.html](http://bioinfo.life.hust.edu.cn/CATT/Homepage.html)
 - Github: [https://github.com/GuoBioinfoLab/CATT](https://github.com/GuoBioinfoLab/CATT)
 
 # Overview
 
-CATT(**C**har**A**cterzing **T**CR reper**t**oires) is a tool for detecting CDR3 (now also support CDR1, CDR2) sequences from any TCR containing raw sequencing data (including TCR-seq, RNA-seq, scRNA-seq and etc.)
+---
+
+CATT(**C**har**A**cterzing **T**CR reper**t**oires) is a tool for detecting CDR3 sequences from any TCR containing raw sequencing data (including TCR-seq, RNA-seq, scRNA-seq and any TCR contained sequencing data)
 
 The tool has the following feature:
 
@@ -26,46 +30,47 @@ The tool has the following feature:
 
 ---
 
+Version 1.3
+
+- Add support for BCR (IGH CDR3 only)
+- Refactor code to improve the expandability and performance
+
 Version 1.2
 
-- Change from Python to Julia, improve multi-thread performance.
+- Change from **Python** to **Julia**, improve multi-thread performance.
 - Add support for 10X scTCR sequencing data.
 - Add support for alpha chain, CDR1, and CDR2
 
 # Installation
 
-CATT can be installed using Docker, Docker is a computer program that performs operating-system-level visualization. Using docker, users could easily install CATT and run CATT in virtual environment.
+---
 
-## Steps:
+CATT can be installed using **Docker**, Docker is a computer program that performs operating-system-level visualization. Using docker, users could easily install CATT and run CATT in virtual environment.
 
-1. Download and install Docker, recommend from [Docker homepage](https://www.docker.com/) (required ubuntu ≥ 14.04 )
+### Steps:
+
+1. Download and install Docker, recommend from [homepage](https://www.notion.so/Homepage-c576fe5f6ca048ccafdc164124b0a159#e0f5e4d66d904727a5ac1e4773f3a568) (required ubuntu ≥ 14.04 )
+
+[Enterprise Container Platform | Docker](https://www.docker.com/)
+
+Docker homepage
 
 2. Download latest CATT docker image
 
-    ```
-    docker pull guobioinfolab/catt:1.2
-    ```
+    docker pull guobioinfolab/catt:latest
 
 This command will pull down the CATT from the docker hub (about ~5min needed to download the image, depend on the network speed).  When execution is done,  CATT have been installed successfully.
 
-## Test sample
+### Test sample
 
 We prepared an simple sample for user test their installation and illustrating the CATT usage.
 
-```bash
-docker run -it --rm -v $PWD:/output guobioinfolab/catt \
-/catt/catt.jl -f testSample.fq -o /output/testSampleOutput -t 2
-```
+    docker run -it --rm -v $PWD:/output guobioinfolab/catt \
+    catt -f testSample.fq -o /output/testSampleOutput -t 2
 
-If all goes well, a CSV format file with name testSampleOutput.CATT.csv should be created in current folder.
+If all goes well, a CSV format file with name testSampleOutput.TRB.CDR3.CATT.csv should be created in current folder.
 
-> Docker command explain:
->
-> `—it` and `--rm` flag are used to set docker container attribute, which are not important here.
->
->  `-v` will mounts the specified directory on the host inside the container at the specified path. In this case, we mounting the `$PWD` (current directory, for linux user only) to `/output` directory inside the CATT image. The input file `testSample.fq` is inside the CATT image, so you don't specific the path of it. 
->
-> We  output the results to the directory as `-o /output/testSampleOutput`. As `/output` is same directory as `$PWD`, you can find the result in the `$PWD` directory outside the CATT image
+Docker command explain:
 
 `—it` and `--rm` flag are used to set docker container attribute, which are not important here.
 `-v` will mounts the specified directory on the host inside the container at the specified path. 
@@ -73,53 +78,57 @@ In this case, we mounting the `$PWD` (current directory, for linux user only) to
 
 # Usage
 
-## Basic
+---
 
-```bash
-# For single-end input:
-docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
-    /catt/catt.jl [option] -f inputFile -o outputName
+> Basic
 
-# For paired-end input:
-docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
-/catt/catt.jl [option] --f1 inputFile1 --f2 inputFile2 -o outputName
-```
+    # For single-end input:
+    docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
+     catt [option] -f inputFile -o outputName
+    
+    # For paired-end input:
+    docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
+     catt [option] --f1 inputFile1 --f2 inputFile2 -o outputName
 
 Where `$PWD` is the path of folder contain your input data (absolute path, or just `$PWD` if input file is in current folder)
 
 option:
 
 - `-t {numberOfThreads}`: number of alignment threads. **default: 4**
-- `-sc`: Using Single-Cell mode. Using more aggressive error correction model.
+- `-sc`: Using Single-Cell mode. Using more aggressive error correction model. For single cell analysis, user should input each cell as a single file.
 - `--bam`: Input format is bam/sam.
-- `--region`: Analysis CDR region. Could be CDR1/CDR2/CDR3. **default: CDR3**
-- `--chain`: Analysis TCR chain. Could TRA/TRB. **default: TRB**
+- `--region`: Analysis CDR region. Could be CDR1/CDR2/CDR3 . **default: CDR3**
+- `--chain`: Analysis TCR chain. Could TRA,TRB,IGH. **default: TRB**
 
-## Advance
+> Advance
 
 ### Multiple input files
 
 Parameter `-f`  (for paired-end input is `--f1` and `--f2`) and `-o`  can accept multiple input files like:
 
-```bash
-docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
-/catt/catt.jl [option] -f inputFile1 inputFile2 inputFile3 ... inputFileN \
--o outputName1 outputName2 outputName3 ... outputNameN
-```
+    docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
+    catt [option] -f inputFile1 inputFile2 inputFile3 ... inputFileN \
+    -o outputName1 outputName2 outputName3 ... outputNameN
 
 The input and output should be one-to-one correspondence.
+
+Current version of Julia (v1.1) have a long startup time (~3s, will be fixed in next version), we recommend put all input in one command.
 
 ### 10X format data
 
 As 10X sequencing becoming popular nowadays, we add the support for processing 10X scTCR-Seq data (In our evaluation, current 10X scRNA-seq is not suitable for TCR profiling, the reads number and length is under the minimum requirements). CATT will automatically read data, trim UMI, and do TCR profiling. (only support for the current version scTCR toolkit, 150bp paired-end, the first 16bp of Read1 is UMI and barcode sequence). CATT will output TCR for every cell (every barcode), in which some might be empty cell or derived from barcode error. User need to filter out such cells themself. 
 
-```bash
-docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
-/catt/catt.jl [option] --tenX -f1 R1 --f2 R2 -o outputName
-```
+    docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
+    catt [option] --tenX -f1 R1 --f2 R2 -o outputName
 
 # **FAQ**
 
-Q: `Got permission denied while trying to connect to the Docker` when try to build docker image
+---
 
-A: Make sure your user is in the docker group that have permission to use docker command
+- Q: Got `permission denied while trying to connect to the Docker` when try to build docker image
+
+    A: Make sure your user is in the docker group that have permission to use docker command
+
+---
+
+Copyright [Guo Lab](http://bioinfo.life.hust.edu.cn/) , [College of Life Science and Technology](http://life.hust.edu.cn/) , [HUST](http://www.hust.edu.cn/) , China
