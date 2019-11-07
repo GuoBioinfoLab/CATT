@@ -55,7 +55,6 @@ Version 1.3  *(2019-9-4)*
 
 - Refactor code to improve the expandability and performance
 - Add support for BCR (IGH CDR3 only)
-- 
 
 Version 1.2
 
@@ -70,26 +69,22 @@ Version 1.2
 CATT can be installed using **Docker**, Docker is a computer program that performs operating-system-level visualization. Using docker, users could easily install CATT and run CATT in virtual environment.
 
 ### Steps:
-
-1. Download and install Docker, recommend from [homepage](https://www.notion.so/Homepage-c576fe5f6ca048ccafdc164124b0a159#e0f5e4d66d904727a5ac1e4773f3a568) (required ubuntu ≥ 14.04 )
-
-[Enterprise Container Platform | Docker](https://www.docker.com/)
-
-Docker homepage
+1. Download and install Docker, recommend from (required ubuntu ≥ 14.04 )
 
 2. Download latest CATT docker image
-
+```Shell
     docker pull guobioinfolab/catt:latest
-
+```
 This command will pull down the CATT from the docker hub (about ~5min needed to download the image, depend on the network speed).  When execution is done,  CATT have been installed successfully.
 
 ### Test sample
 
 We prepared a sample file ([testSample.fq](https://github.com/GuoBioinfoLab/CATT/blob/master/testSample.fq), can be downloaded from Github) for user test their installation and illustrating the CATT usage.  **Enter the folder contain the sample file and then run command:**
 
-    docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
-    catt -f testSample.fq -o testSampleOutput -t 2
-
+```Shell
+docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
+catt -f testSample.fq -o testSampleOutput -t 2
+```
 If all goes well, a CSV format file with name testSampleOutput.TRB.CDR3.CATT.csv should be created in current folder.
 
 Docker command explain:
