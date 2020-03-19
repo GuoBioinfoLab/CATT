@@ -64,16 +64,44 @@ Version 1.2
 
 # Installation
 
----
+### Source code
 
-CATT can be installed using **Docker**, Docker is a computer program that performs operating-system-level visualization. Using docker, users could easily install CATT and run CATT in virtual environment.
+CATT is written in Julia and python. Download the latest verison and accompanying files from by
 
-### Steps:
-1. Download and install Docker, recommend from (required ubuntu ≥ 14.04 )
+```shell
+git clone https://github.com/GuoBioinfoLab/CATT.git
+```
+
+#### Pre-requisites
+
+* Python >= 3.7
+  * argparse
+* Julia >= 1.0
+  * DataFrames
+  * CSV
+  * GZip
+  * BioAlignment
+  * BioSequence < 2.0
+* BWA
+* Samtools
+
+#### Configure
+
+Several parameters should be set well in the `reference.jl`
+
+* ref_prefix: The path of resource folder (contain), like `/home/XXX/catt/resource`
+* bwa_path: The executive file path of bwa, like `/usr/bin/bwa`. If the bwa is in the $PATH, this can be simply set as `bwa`
+* Samtools_path: The executive file path of samtools
+
+### Docker Image (recommand)
+
+CATT can also be installed using **Docker**, Docker is a computer program that performs operating-system-level visualization. Using docker, users could easily install CATT and run CATT in virtual environment.
+
+1. Download and install Docker, recommend from [Hompage](https://www.docker.com) (required ubuntu ≥ 14.04 )
 
 2. Download latest CATT docker image
 ```Shell
-    docker pull guobioinfolab/catt:latest
+docker pull guobioinfolab/catt:latest
 ```
 This command will pull down the CATT from the docker hub (about ~5min needed to download the image, depend on the network speed).  When execution is done,  CATT have been installed successfully.
 
@@ -99,13 +127,15 @@ In this case, we mounting the `$PWD` (current directory, for linux user only) to
 
 > Basic
 
-    # For single-end input:
-    docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
-     catt [option] -f inputFile -o outputName
-    
-    # For paired-end input:
-    docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
-     catt [option] --f1 inputFile1 --f2 inputFile2 -o outputName
+```shell
+# For single-end input:
+docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
+ catt [option] -f inputFile -o outputName
+
+# For paired-end input:
+docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
+ catt [option] --f1 inputFile1 --f2 inputFile2 -o outputName
+```
 
 Where `$PWD` is the path of folder contain your input data (absolute path, or just `$PWD` if input file is in current folder)
 
