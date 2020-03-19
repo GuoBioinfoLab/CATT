@@ -74,6 +74,8 @@ git clone https://github.com/GuoBioinfoLab/CATT.git
 
 #### Pre-requisites
 
+To run CATT stand-alone, some packages and softwares are needed:
+
 * Python >= 3.7
   * argparse
 * Julia >= 1.0

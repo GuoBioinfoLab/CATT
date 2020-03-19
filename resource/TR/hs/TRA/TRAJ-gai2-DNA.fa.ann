@@ -1,0 +1,125 @@
+1860 62 11
+0 X02884|TRAJ1*01|Homo sapiens|ORF|J-REGION|2363..2424|62 nt|2| | | | |62+0=62| | |
+0 30 0
+0 M94081|TRAJ10*01|Homo sapiens|F|J-REGION|73699..73762|64 nt|1| | | | |64+0=64| | |
+30 30 0
+0 M94081|TRAJ11*01|Homo sapiens|F|J-REGION|72706..72765|60 nt|3| | | | |60+0=60| | |
+60 30 0
+0 X02885|TRAJ12*01|Homo sapiens|F|J-REGION|53..112|60 nt|3| | | | |60+0=60| | |
+90 30 0
+0 M94081|TRAJ13*01|Homo sapiens|F|J-REGION|71280..71342|63 nt|3| | | | |63+0=63| | |
+120 30 0
+0 AB258131|TRAJ13*02|Homo sapiens|F|J-REGION|101..163|63 nt|3| | || |63+0=63| | |
+150 30 0
+0 M94081|TRAJ14*01|Homo sapiens|F|J-REGION|70532..70583|52 nt|1| | | | |52+0=52| | |
+180 30 0
+0 X05775|TRAJ15*01|Homo sapiens|F|J-REGION|80..139|60 nt|3| | | | |60+0=60| | |
+210 30 0
+0 M94081|TRAJ15*02|Homo sapiens|F|J-REGION|69836..69895|60 nt|3| | | | |60+0=60| | |
+240 30 0
+0 M94081|TRAJ16*01|Homo sapiens|F|J-REGION|68743..68802|60 nt|3| | | | |60+0=60| | |
+270 30 0
+0 X05773|TRAJ17*01|Homo sapiens|F|J-REGION|173..235|63 nt|3| | | | |63+0=63| | |
+300 30 0
+0 M94081|TRAJ18*01|Homo sapiens|F|J-REGION|65876..65941|66 nt|3| | | | |66+0=66| | |
+330 30 0
+0 M94081|TRAJ19*01|Homo sapiens|ORF|J-REGION|65489..65548|60 nt|3| | | | |60+0=60| | |
+360 30 0
+0 X02884|TRAJ2*01|Homo sapiens|ORF|J-REGION|1397..1462|66 nt|3| | | | |66+0=66| | |
+390 30 0
+0 M94081|TRAJ20*01|Homo sapiens|F|J-REGION|64552..64608|57 nt|3| | | | |57+0=57| | |
+420 30 0
+0 M94081|TRAJ21*01|Homo sapiens|F|J-REGION|63829..63883|55 nt|1| | | | |55+0=55| | |
+450 30 0
+0 X02886|TRAJ22*01|Homo sapiens|F|J-REGION|405..467|63 nt|3| | | | |63+0=63| | |
+480 30 0
+0 M94081|TRAJ23*01|Homo sapiens|F|J-REGION|60650..60712|63 nt|3| | | | |63+0=63| | |
+510 30 0
+0 X58763|TRAJ23*02|Homo sapiens|F|J-REGION|61..123|63 nt|3| | | | |63+0=63| | |
+540 30 0
+0 X02887|TRAJ24*01|Homo sapiens|F|J-REGION|124..186|63 nt|3| | | | |63+0=63| | |
+570 30 0
+0 M94081|TRAJ24*02|Homo sapiens|F|J-REGION|60203..60265|63 nt|3| | | | |63+0=63| | |
+600 30 0
+0 X02888|TRAJ25*01|Homo sapiens|ORF|J-REGION|35..94|60 nt|3| | | | |60+0=60| | |
+630 30 0
+0 M94081|TRAJ26*01|Homo sapiens|F|J-REGION|58680..58739|60 nt|3| | | | |60+0=60| | |
+660 30 0
+0 M94081|TRAJ27*01|Homo sapiens|F|J-REGION|56507..56565|59 nt|2| | | | |59+0=59| | |
+690 30 0
+0 M94081|TRAJ28*01|Homo sapiens|F|J-REGION|55857..55922|66 nt|3| | | | |66+0=66| | |
+720 30 0
+0 M94081|TRAJ29*01|Homo sapiens|F|J-REGION|54177..54236|60 nt|3| | | | |60+0=60| | |
+750 30 0
+0 X02884|TRAJ3*01|Homo sapiens|F|J-REGION|504..565|62 nt|2| | | | |62+0=62| | |
+780 30 0
+0 M94081|TRAJ30*01|Homo sapiens|F|J-REGION|53090..53146|57 nt|3| | | | |57+0=57| | |
+810 30 0
+0 M94081|TRAJ31*01|Homo sapiens|F|J-REGION|51207..51263|57 nt|3| | || |57+0=57| | |
+840 30 0
+0 M94081|TRAJ32*01|Homo sapiens|F|J-REGION|49581..49646|66 nt|3| | | | |66+0=66| | |
+870 30 0
+0 AF532854|TRAJ32*02|Homo sapiens|(F)|J-REGION|240..299,a|60 nt|3| |1|| |60+0=60| | |
+900 30 0
+0 M35622|TRAJ34*01|Homo sapiens|F|J-REGION|30..87|58 nt|1| | | | |58+0=58| | |
+930 30 0
+0 M94081|TRAJ36*01|Homo sapiens|F|J-REGION|45353..45411|59 nt|2| | | | |59+0=59| | |
+960 30 0
+0 M94081|TRAJ37*01|Homo sapiens|F|J-REGION|43993..44054|62 nt|2| | | | |62+0=62| | |
+990 30 0
+0 AJ007774|TRAJ37*02|Homo sapiens|(F)|J-REGION|336..397,g|62 nt|2| |1| | |62+0=62| | |
+1020 30 0
+0 M94081|TRAJ39*01|Homo sapiens|F|J-REGION|41843..41905|63 nt|3| | | | |63+0=63| | |
+1050 30 0
+0 M94081|TRAJ4*01|Homo sapiens|F|J-REGION|82396..82458|63 nt|3| | | | |63+0=63| | |
+1080 30 0
+0 M35620|TRAJ40*01|Homo sapiens|F|J-REGION|35..95|61 nt|1| | | | |61+0=61| | |
+1110 30 0
+0 M94081|TRAJ41*01|Homo sapiens|F|J-REGION|37900..37961|62 nt|2| | | | |62+0=62| | |
+1140 30 0
+0 M94081|TRAJ42*01|Homo sapiens|F|J-REGION|37130..37195|66 nt|3| | | | |66+0=66| | |
+1170 30 0
+0 M94081|TRAJ43*01|Homo sapiens|F|J-REGION|36154..36207|54 nt|3| | | | |54+0=54| | |
+1200 30 0
+0 M35619|TRAJ44*01|Homo sapiens|F|J-REGION|30..92|63 nt|3| | | | |63+0=63| | |
+1230 30 0
+0 M94081|TRAJ45*01|Homo sapiens|F|J-REGION|34169..34234|66 nt|3| | | | |66+0=66| | |
+1260 30 0
+0 M94081|TRAJ46*01|Homo sapiens|F|J-REGION|33647..33709|63 nt|3| | | | |63+0=63| | |
+1290 30 0
+0 M94081|TRAJ47*01|Homo sapiens|F|J-REGION|33096..33152|57 nt|3| | | | |57+0=57| | |
+1320 30 0
+0 AF033825|TRAJ47*02|Homo sapiens|(F)|J-REGION|312..368,t|57 nt|3| |1| | |57+0=57| | |
+1350 30 0
+0 M94081|TRAJ48*01|Homo sapiens|F|J-REGION|30737..30799|63 nt|3| | | | |63+0=63| | |
+1380 30 0
+0 M94081|TRAJ49*01|Homo sapiens|F|J-REGION|29734..29789|56 nt|2| | | | |56+0=56| | |
+1410 30 0
+0 M94081|TRAJ5*01|Homo sapiens|F|J-REGION|80444..80503|60 nt|3| | | | |60+0=60| | |
+1440 30 0
+0 M94081|TRAJ50*01|Homo sapiens|F|J-REGION|28839..28898|60 nt|3| | | | |60+0=60| | |
+1470 30 0
+0 M94081|TRAJ52*01|Homo sapiens|F|J-REGION|26474..26542|69 nt|3| | | | |69+0=69| | |
+1500 30 0
+0 M94081|TRAJ53*01|Homo sapiens|F|J-REGION|23251..23316|66 nt|3| | | | |66+0=66| | |
+1530 30 0
+0 M94081|TRAJ54*01|Homo sapiens|F|J-REGION|22534..22593|60 nt|3| | | | |60+0=60| | |
+1560 30 0
+0 M94081|TRAJ56*01|Homo sapiens|F|J-REGION|19768..19829|62 nt|2| | | | |62+0=62| | |
+1590 30 0
+0 M94081|TRAJ57*01|Homo sapiens|F|J-REGION|19119..19181|63 nt|3| | | | |63+0=63| | |
+1620 30 0
+0 M94081|TRAJ58*01|Homo sapiens|ORF|J-REGION|17954..18016|63 nt|3| | | | |63+0=63| | |
+1650 30 0
+0 M94081|TRAJ59*01|Homo sapiens|ORF|J-REGION|16801..16860|60 nt|3| | || |60+0=60| | |
+1680 30 0
+0 M16747|TRAJ6*01|Homo sapiens|F|J-REGION|31..92|62 nt|2| | | | |62+0=62| | |
+1710 30 0
+0 M94081|TRAJ60*01|Homo sapiens|P|J-REGION|16554..16610|57 nt|3| | | | |57+0=57| | |
+1740 30 0
+0 M94081|TRAJ7*01|Homo sapiens|F|J-REGION|77821..77879|59 nt|2| | | | |59+0=59| | |
+1770 30 0
+0 M94081|TRAJ8*01|Homo sapiens|F|J-REGION|76346..76405|60 nt|3| | | | |60+0=60| | |
+1800 30 0
+0 M94081|TRAJ9*01|Homo sapiens|F|J-REGION|75756..75816|61 nt|1| | | | |61+0=61| | |
+1830 30 0
