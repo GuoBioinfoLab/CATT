@@ -121,7 +121,7 @@ To run CATT stand-alone, some packages and softwares are needed:
 
    ```Shell
    chmod u+x catt
-   #add to ~/.bashrc
+   #add catt to ~/.bashrc
    export PATH="/path/to/catt:$PATH"
    ```
 
@@ -215,7 +215,7 @@ As current version of Julia (v1.1) have a long startup time (~3s, will be fixed 
 
 As 10X sequencing becoming popular nowadays, we add the support for processing 10X scTCR-Seq data (In our evaluation, current 10X scRNA-seq is not suitable for TCR profiling, the reads number and length is under the minimum requirements). CATT will automatically read data, trim UMI, and do TCR profiling. (only support for the current version scTCR toolkit, 150bp paired-end, the first 16bp of Read1 is UMI and barcode sequence). CATT will output TCR for every cell (every barcode), in which some might be empty cell or derived from barcode error. User need to filter out such cells themself. 
 
-    catt [option] --tenX -f1 R1 --f2 R2 -o outputName
+    catt [option] --tenX --f1 R1 --f2 R2 -o outputName
 
 > Output explain
 
