@@ -95,6 +95,10 @@ Several parameters should be set well in the `reference.jl`
 * bwa_path: The executive file path of bwa, like `/usr/bin/bwa`. If the bwa is in the $PATH, this can be simply set as `bwa`
 * Samtools_path: The executive file path of samtools
 
+Several parameters should be set well in the `catt_vX.X.jl`
+
+* In Line 18-20, the absolute path to file `reference.jl`, `Jtool.jl`,  `config.jl`
+
 ### Docker Image (recommand)
 
 CATT can also be installed using **Docker**, Docker is a computer program that performs operating-system-level visualization. Using docker, users could easily install CATT and run CATT in virtual environment.

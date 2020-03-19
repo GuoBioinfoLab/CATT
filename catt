@@ -1,0 +1,55 @@
+#!/usr/bin/python
+
+from optparse import OptionParser
+import argparse
+import os
+
+def CommandLineParser():
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-f', '--file', action='append', default=[], help="Input file path")
+    group.add_argument("--f1", action='append', default=[], help='Input file path with #1 mates')
+    parser.add_argument("--f2", action='append', default=[], help='Input file path with #2 mates')
+    parser.add_argument('-o', '--output', action='append', default=[], required=True, help='Output path, prefix shoulde be included.')
+    parser.add_argument('-t', '--thread', default=4, type=int, help='Thread number used by CATT')
+    parser.add_argument('-k', '--kmer', default=30, type=int)
+    parser.add_argument("--chain", default="TRB", choices=['TRB', 'TRA', 'IGH'])
+    parser.add_argument("--region", '-r', default="CDR3", choices=['CDR1', 'CDR2', 'CDR3'])
+    parser.add_argument("--bowt", type=int, default=16, help="Thread used for align.")
+    parser.add_argument("--sc", action="store_true", default=False)
+    parser.add_argument("--debug",  action='store_true', default=False)
+    parser.add_argument("--bowsc",  default=15, type=int)
+    parser.add_argument('--penality',default=1, type=int)
+    parser.add_argument("--bam", action="store_true", dest='bam', default=False)
+    parser.add_argument("--tenX", action="store_true", dest="tenX", default=False)
+    parser.add_argument("--species", default='hs', choices=['hs', 'ms', 'pig'])
+    parser.add_argument('--processed', dest='processed', action='append', default=[], help="processed file path")
+    return parser.parse_args()
+
+
+def convert( arg ):
+
+    if arg is None:
+        return "nothing"
+
+    if type(arg) == str:
+        return '"' + arg + '"'
+    elif type(arg) == int:
+        return arg
+    elif type(arg) == bool:
+        return "true" if arg else "false"
+    else:
+        return arg
+
+if __name__ == '__main__':
+
+    args = CommandLineParser()
+    with open("/catt/config.jl", "w") as handle:
+        handle.write("parsed_args = Dict(\n")
+        for arg in vars(args):
+            line = "{} => {},\n".format(convert(arg), convert((getattr(args, arg))))
+            handle.write(line.replace('\'', "\""))
+        handle.write(")")
+
+    os.system('export JULIA_NUM_THREADS=%d && julia /catt/catt_v1.7.jl' % getattr(args, "thread"))
+
