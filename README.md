@@ -31,6 +31,20 @@ The tool has the following feature:
 
 ---
 
+Version 1.7 (2020-03)
+
+* Bugs fixed
+
+
+
+Version 1.6 (2020-01)
+
+* Bugs fixed
+
+* Reduce the startup time
+
+  
+
 Version 1.4 (2019-10)
 
 - Add support for TCR CDR3 profiling for Pig
@@ -89,15 +103,27 @@ To run CATT stand-alone, some packages and softwares are needed:
 
 #### Configure
 
-Several parameters should be set well in the `reference.jl`
+1. Several parameters should be set well in the `reference.jl`
 
 * ref_prefix: The path of resource folder (contain), like `/home/XXX/catt/resource`
 * bwa_path: The executive file path of bwa, like `/usr/bin/bwa`. If the bwa is in the $PATH, this can be simply set as `bwa`
 * Samtools_path: The executive file path of samtools
 
-Several parameters should be set well in the `catt_vX.X.jl`
+2. Several parameters should be set well in the `catt_vX.X.jl`
 
-* In Line 18-20, the absolute path to file `reference.jl`, `Jtool.jl`,  `config.jl`
+* In Line 18-20, the absolute path to file `reference.jl`, `Jtool.jl`
+
+3. Several parameters should be set well in the `catt`
+
+*  In Line 47, the path of `config.jl`, make sure it is consistent with the path in `catt_vX.X.jl`
+
+4. make `catt` executable and add it to global variable
+
+   ```Shell
+   chmod u+x catt
+   #add to ~/.bashrc
+   export PATH="/path/to/catt:$PATH"
+   ```
 
 ### Docker Image (recommand)
 
@@ -116,8 +142,13 @@ This command will pull down the CATT from the docker hub (about ~5min needed to 
 We prepared a sample file ([testSample.fq](https://github.com/GuoBioinfoLab/CATT/blob/master/testSample.fq), can be downloaded from Github) for user test their installation and illustrating the CATT usage.  **Enter the folder contain the sample file and then run command:**
 
 ```Shell
+# Docker image
 docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
 catt -f testSample.fq -o testSampleOutput -t 2
+
+# Source code
+catt -f testSample.fq -o testSampleOutput -t 2
+
 ```
 If all goes well, a CSV format file with name testSampleOutput.TRB.CDR3.CATT.csv should be created in current folder.
 
@@ -129,21 +160,32 @@ In this case, we mounting the `$PWD` (current directory, for linux user only) to
 
 # Usage
 
----
+To integrate usage,  users who install the CATT from Docker should always add following settings before command:
 
-> Basic
+```Shell
+docker run -it --rm -v $PWD:/output -w /output -u $UID guobioinfolab/catt
+
+#for example, from
+catt -f testSample.fq -o testSampleOutput -t 2
+#to
+docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
+catt -f testSample.fq -o testSampleOutput -t 2
+```
+
+Where `$PWD` is the path of folder contain your input data (absolute path, or just `$PWD` if input file is in current folder)
+
+### Basic
 
 ```shell
 # For single-end input:
-docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
- catt [option] -f inputFile -o outputName
+catt [option] -f inputFile -o outputName
 
 # For paired-end input:
-docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
- catt [option] --f1 inputFile1 --f2 inputFile2 -o outputName
-```
+catt [option] --f1 inputFile1 --f2 inputFile2 -o outputName
 
-Where `$PWD` is the path of folder contain your input data (absolute path, or just `$PWD` if input file is in current folder)
+# For bam input
+catt [option] --bam -f inputFile -o outputName
+```
 
 option:
 
@@ -160,9 +202,10 @@ option:
 
 Parameter `-f`  (for paired-end input is `--f1` and `--f2`) and `-o`  can accept multiple input files like:
 
-    docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
-    catt [option] -f inputFile1 inputFile2 inputFile3 ... inputFileN \
-    -o outputName1 outputName2 outputName3 ... outputNameN
+```Shell
+catt [option] -f inputFile1 inputFile2 inputFile3 ... inputFileN \
+-o outputName1 outputName2 outputName3 ... outputNameN
+```
 
 The input and output should be one-to-one correspondence.
 
@@ -172,7 +215,6 @@ As current version of Julia (v1.1) have a long startup time (~3s, will be fixed 
 
 As 10X sequencing becoming popular nowadays, we add the support for processing 10X scTCR-Seq data (In our evaluation, current 10X scRNA-seq is not suitable for TCR profiling, the reads number and length is under the minimum requirements). CATT will automatically read data, trim UMI, and do TCR profiling. (only support for the current version scTCR toolkit, 150bp paired-end, the first 16bp of Read1 is UMI and barcode sequence). CATT will output TCR for every cell (every barcode), in which some might be empty cell or derived from barcode error. User need to filter out such cells themself. 
 
-    docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
     catt [option] --tenX -f1 R1 --f2 R2 -o outputName
 
 > Output explain
