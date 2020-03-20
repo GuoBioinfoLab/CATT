@@ -33,13 +33,13 @@ The tool has the following feature:
 
 Version 1.7 (2020-03)
 
-* Bugs fixed
+* Bug fixes
 
 
 
 Version 1.6 (2020-01)
 
-* Bugs fixed
+* Bug fixes
 
 * Reduce the startup time
 
