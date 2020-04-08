@@ -1,6 +1,6 @@
 #=
 Jatt:
-- Julia version:
+- Julia version: 1.8
 - Author: kroaity
 - Date: 2018-11-22
 =#
@@ -17,7 +17,6 @@ using UUIDs
 
 include("/home/feifei/referece.jl")
 include("/home/feifei/Jtool.jl")
-include("/home/feifei/config.jl")
 
 the_ERR = 0.0031
 
@@ -54,9 +53,11 @@ function assignV(rd::SAM.Record, refName2Seq)::Myread
 
 
 
-    if (r_lgt + 10 > r_pos + length(tseq)- start )
+    if ( (r_lgt - r_pos) - (length(tseq) - start  ) > -10  )
         return Myread(DNASequence("T"), "Useless", "Noname", "None", "None", false)
     end
+
+    return Myread( tseq[start:end], SAM.quality(String, rd)[start:end], refname, "None", "None", false)
 
     Myread( ref_seq[r_pos:end] * tseq[start+r_lgt-r_pos+1:end],
             repeat('G', r_lgt-r_pos+1)*SAM.quality(String, rd)[start+r_lgt-r_pos+1:end],
@@ -107,8 +108,8 @@ function input_convert(args, input_file; input_file2=nothing)
     jbam = []
     @sync for (idx, input_path) in enumerate( [input_file, input_file2] )
         if input_path != nothing
-            @async push!(vbam, map2align(input_path, refg[args["species"]][args["chain"]][args["region"]]["vregion"], fasta_flag, tmp_name * ".$idx.V", args["bowt"], args["bowsc"]))
-            @async push!(jbam, map2align(input_path, refg[args["species"]][args["chain"]][args["region"]]["jregion"], fasta_flag, tmp_name * ".$idx.J", args["bowt"], args["bowsc"]))
+            @async push!(vbam, map2align(input_path, refg[args["species"]][args["chain"]][args["region"]]["vregion"], fasta_flag, tmp_name * ".$idx.V", args["bowt"] / 2, args["bowsc"]))
+            @async push!(jbam, map2align(input_path, refg[args["species"]][args["chain"]][args["region"]]["jregion"], fasta_flag, tmp_name * ".$idx.J", args["bowt"] / 2 , args["bowsc"]))
         end
     end
 
@@ -167,6 +168,11 @@ function read_alignrs(args, vbam, jbam, tmp_name)
 
     for idx in 1:length(vbam)
 
+        if args["kmer"] == 10000
+            kmer_length = @spawn get_kmer_fromsam(tmp_name, vbam[idx], args)
+        else
+            kmer_length = args["kmer"]
+        end
         kmer_length = @spawn get_kmer_fromsam(tmp_name, vbam[idx], args)
         error_rate = @spawn get_err_fromsam(tmp_name, vbam[idx])
 
@@ -484,7 +490,7 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
     filter!(x->x.able, Vpart)
 	filter!(x->x.able, Jpart)
 
-	selfLog("Part 1 $( length([rd for rd in Vpart if rd.cdr3!="None"]) + length([rd for rd in Jpart if rd.cdr3!="None"]) )")
+	selfLog("Directly found $( length([rd for rd in Vpart if rd.cdr3!="None"]) + length([rd for rd in Jpart if rd.cdr3!="None"]) )")
     selfLog("Break partital reads into kmer")
     pV = filter(x->x.cdr3=="None", Vpart)
     pJ = filter(x->x.cdr3=="None", Jpart)
@@ -512,6 +518,8 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
     terms = keys(term_label)
     #terms_stand = Dict([ (key, most_common(counter(term_label[key]))[1][1]) for key in terms ])
     kmer_pool = merge(bbk(Vpart, the_kmer), bbk(Jpart, the_kmer))
+
+    #TODO(chensy): where is the code to delete repeat ???
 
     selfLog("Extending")
 
@@ -705,6 +713,14 @@ function split_10X(f1, f2)
 
 end
 
+function mainflow(parsed_args, vbam, jbam, tmp_name)
+
+    Vpart, Jpart, tmp_name = read_alignrs(parsed_args, vbam, jbam, tmp_name)
+    catt(Vpart, Jpart, tmp_name, parsed_args, parsed_args["output"])
+
+end
+
+
 function proc(args)
 
     selfLog("Program start")
@@ -746,13 +762,10 @@ function proc(args)
         for (name, url) in ll
             
             vbam, jbam, tmp_name =  input_convert( parsed_args, url )
-            Vpart, Jpart, tmp_name = read_alignrs(parsed_args, vbam, jbam, tmp_name)
-            catt(Vpart, Jpart, tmp_name, parsed_args, parsed_args["output"])
-
+           
             parsed_args["chain"] = "TRA"
             vbam, jbam, tmp_name =   input_convert( parsed_args, url )
-            Vpart, Jpart, tmp_name = read_alignrs(parsed_args, vbam, jbam, tmp_name)
-            catt(Vpart, Jpart, tmp_name, parsed_args, parsed_args["output"])
+            mainflow(parsed_args, vbam, jbam, tmp_name)
             parsed_args["chain"] = "TRB"
 
         end
@@ -765,8 +778,7 @@ function proc(args)
                 selfLog("Handing Paired-end sample: $(f1)")
 
                 vbam, jbam, tmp_name =   input_convert(parsed_args, f1, input_file2 = f2)
-                Vpart, Jpart, tmp_name = read_alignrs(parsed_args, vbam, jbam, tmp_name)
-                catt(Vpart, Jpart, tmp_name, parsed_args, outfix)
+                mainflow(parsed_args, vbam, jbam, tmp_name)
 
                 selfLog("Handle end")
 
@@ -775,8 +787,7 @@ function proc(args)
                     if parsed_args["chain"] == "TRB"
                         parsed_args["chain"] = "TRA"
                         vbam, jbam, tmp_name =   input_convert( parsed_args, f1, input_file2 = f2)
-                        Vpart, Jpart, tmp_name = read_alignrs(parsed_args, vbam, jbam, tmp_name)
-                        catt(Vpart, Jpart, tmp_name, parsed_args, outfix*".TRA")
+                        mainflow(parsed_args, vbam, jbam, tmp_name)
                         parsed_args["chain"] = "TRB"
                     end
                 end
@@ -786,20 +797,22 @@ function proc(args)
             for (inp, outfix) in zip(parsed_args["file"], parsed_args["output"])
 
                 #println(parsed_args["output"])
-                selfLog("Handing Single-end sample: $(inp)")
+                
 
                 if parsed_args["bam"]
                     #extract reads then cat it 
+                    selfLog("Handing bam/sam file: $(inp)")
                     temp = uuid1( MersenneTwister(1234) )
                     thread = args["bowt"]
                     run(pipeline(`$samtools_path fastq -N -@ $thread $inp`, stdout="$temp.fastq"))
                     inp = "$temp.fastq"
                     push!(del_que, (inp, "rm"))
+                else
+                    selfLog("Handing Single-end sample: $(inp)")
                 end
 
                 vbam, jbam, tmp_name =   input_convert( parsed_args, inp )
-                Vpart, Jpart, tmp_name = read_alignrs(parsed_args, vbam, jbam, tmp_name)
-                catt(Vpart, Jpart, tmp_name, parsed_args, outfix)
+                mainflow(parsed_args, vbam, jbam, tmp_name)
 
                 selfLog("Handle end")
 
@@ -807,8 +820,7 @@ function proc(args)
                     if parsed_args["chain"] == "TRB"
                         parsed_args["chain"] = "TRA"
                         vbam, jbam, tmp_name =   input_convert( parsed_args, inp )
-                        Vpart, Jpart, tmp_name = read_alignrs(parsed_args, vbam, jbam, tmp_name)
-                        catt(Vpart, Jpart, tmp_name, parsed_args, outfix)
+                        mainflow(parsed_args, vbam, jbam, tmp_name)
                         parsed_args["chain"] = "TRB"
                     end
                 end
@@ -825,6 +837,9 @@ function proc(args)
     
 
 end
+# input details
+include("/home/feifei/config.jl")
+#load reference 
 
 if !isempty(parsed_args["output"])
     proc(parsed_args)

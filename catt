@@ -51,5 +51,5 @@ if __name__ == '__main__':
             handle.write(line.replace('\'', "\""))
         handle.write(")")
 
-    os.system('export JULIA_NUM_THREADS=%d && julia /catt/catt_v1.7.jl' % getattr(args, "thread"))
+    os.system('export JULIA_NUM_THREADS=%d && julia /catt/catt.jl' % getattr(args, "thread"))
 
