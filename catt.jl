@@ -1,8 +1,8 @@
 #=
-Jatt:
-- Julia version: 1.8
+CATT julia version:
+- version: 1.8
 - Author: kroaity
-- Date: 2018-11-22
+- Date: 2020-04-11
 =#
 
 using Distributed
@@ -15,8 +15,9 @@ using Base.Threads
 using Random
 using UUIDs
 
-include("/home/feifei/referece.jl")
+include("/home/feifei/reference.jl")
 include("/home/feifei/Jtool.jl")
+include("/home/feifei/config.jl")
 
 the_ERR = 0.0031
 
@@ -55,17 +56,12 @@ function assignV(rd::SAM.Record, refName2Seq)::Myread
 
     if ( (r_lgt - r_pos) - (length(tseq) - start  ) > -10  )
         return Myread(DNASequence("T"), "Useless", "Noname", "None", "None", false)
-    end
+	elseif ( term-start) / (r_lgt - r_pos) <= 0.5
+		return Myread(DNASequence("T"), "Useless", "Noname", "None", "None", false)
+ 	else	
+    	return Myread( tseq[start:end], SAM.quality(String, rd)[start:end], refname, "None", "None", false)
+	end
 
-    return Myread( tseq[start:end], SAM.quality(String, rd)[start:end], refname, "None", "None", false)
-
-    Myread( ref_seq[r_pos:end] * tseq[start+r_lgt-r_pos+1:end],
-            repeat('G', r_lgt-r_pos+1)*SAM.quality(String, rd)[start+r_lgt-r_pos+1:end],
-            refname,
-            "None",
-            "None",
-            false
-        )
 end
 
 function assignJ(rd::SAM.Record, refName2Seq)::Myread
@@ -108,8 +104,8 @@ function input_convert(args, input_file; input_file2=nothing)
     jbam = []
     @sync for (idx, input_path) in enumerate( [input_file, input_file2] )
         if input_path != nothing
-            @async push!(vbam, map2align(input_path, refg[args["species"]][args["chain"]][args["region"]]["vregion"], fasta_flag, tmp_name * ".$idx.V", args["bowt"] / 2, args["bowsc"]))
-            @async push!(jbam, map2align(input_path, refg[args["species"]][args["chain"]][args["region"]]["jregion"], fasta_flag, tmp_name * ".$idx.J", args["bowt"] / 2 , args["bowsc"]))
+            @async push!(vbam, map2align(input_path, refg[args["species"]][args["chain"]][args["region"]]["vregion"], fasta_flag, tmp_name * ".$idx.V", args["bowt"] >> 1, args["bowsc"]))
+            @async push!(jbam, map2align(input_path, refg[args["species"]][args["chain"]][args["region"]]["jregion"], fasta_flag, tmp_name * ".$idx.J", args["bowt"] >> 1 , args["bowsc"]))
         end
     end
 
@@ -119,6 +115,9 @@ end
 function get_kmer_fromsam(tmp_name::String, vbam::String, args)
 
     run(pipeline(`$samtools_path stats $vbam`, stdout=pipeline(`grep 'average length'`, stdout="$tmp_name.length.txt")))
+    if args["kmer"] != 10000
+        return
+    end
     open("$tmp_name.length.txt", "r") do io
         avg_length = parse(Float64, split(read(io, String), "\t")[3])
         if avg_length >= 50
@@ -147,7 +146,14 @@ function get_err_fromsam(tmp_name::String, vbam::String)
 end
 
 function read_alignrs(args, vbam, jbam, tmp_name)
+    cmotif = [ Regex(refg[args["species"]][args["chain"]][args["region"]]["cmotif"]) for i in 1:nthreads() ]
+    fmotif = [ Regex(refg[args["species"]][args["chain"]][args["region"]]["fmotif"]) for i in 1:nthreads() ]
+    
+    coffset = [ refg[args["species"]][args["chain"]][args["region"]]["coffset"] for i in 1:nthreads() ]  
+    foffset = [ refg[args["species"]][args["chain"]][args["region"]]["foffset"] for i in 1:nthreads() ]
 
+    innerC =  [ Regex(refg[args["species"]][args["chain"]][args["region"]]["innerC"]) for i in 1:nthreads() ] 
+    innerF =  [ Regex(refg[args["species"]][args["chain"]][args["region"]]["innerF"]) for i in 1:nthreads() ]
 
     # Read Reference sequence
 
@@ -168,18 +174,11 @@ function read_alignrs(args, vbam, jbam, tmp_name)
 
     for idx in 1:length(vbam)
 
-        if args["kmer"] == 10000
-            kmer_length = @spawn get_kmer_fromsam(tmp_name, vbam[idx], args)
-        else
-            kmer_length = args["kmer"]
-        end
+       
         kmer_length = @spawn get_kmer_fromsam(tmp_name, vbam[idx], args)
         error_rate = @spawn get_err_fromsam(tmp_name, vbam[idx])
 
-        if args["debug"]
-            selfLog("bing xing kaishi")
-        end
-
+     
         @sync begin
             @async run(pipeline(`$samtools_path view -S $(vbam[idx])`, stdout=pipeline(`cut -f1`, "$tmp_name.v.name.list")))
             @async run(pipeline(`$samtools_path view -S $(jbam[idx])`, stdout=pipeline(`cut -f1`, "$tmp_name.j.name.list")))
@@ -194,16 +193,14 @@ function read_alignrs(args, vbam, jbam, tmp_name)
             ))
         end
 
-        if args["debug"]
-            selfLog("bing xing wancheng")
-        end
      
-        rd1names = Set(readlines("$tmp_name.v.name.list"))
-        rd2names = Set(readlines("$tmp_name.j.name.list"))
-        #share_name = Set(readlines(pipeline(`sort $tmp_name.v.name.list $tmp_name.j.name.list`, `awk 'dup[$0]++ == 1'`)))
-        @async run(`rm $tmp_name.v.name.list $tmp_name.j.name.list`)
+	share_name= intersect( Set(readlines("$tmp_name.v.name.list")), Set(readlines("$tmp_name.j.name.list")) )
         full_reads = Array{ Tuple{String, SAM.Record}, 1}()
 
+
+        run(`rm $tmp_name.v.name.list`)
+	run(`rm $tmp_name.j.name.list`)
+	
         #selfLog("Zhelizashuishi?")
         #selfLog("Waiting Length information")
         fetch(kmer_length)
@@ -212,36 +209,34 @@ function read_alignrs(args, vbam, jbam, tmp_name)
 
             foo, col = occursin(".V.sam", filename) ? (assignV, Vpart) : (assignJ, Jpart)
 
-            sam_buffer = Array{Array{SAM.Record,1} ,1}(undef, Threads.nthreads())
-            Threads.@threads for idx in 1:Threads.nthreads()
+            part_buffer = Array{Array{Myread, 1} ,1}(undef, Threads.nthreads())
+	    	full_buffer = Array{Array{Tuple{String, SAM.Record},1} ,1}(undef, Threads.nthreads())
+
+            #Threads.@threads for idx in 1:Threads.nthreads()
+		    for idx in 1:Threads.nthreads()	
+					part_buffer[idx] = Array{Myread, 1}()
+					full_buffer[idx] = Array{SAM.Record, 1}()
                     if isfile("$filename.$(idx-1).sam")
-                        sam_buffer[idx] = [ rd for rd in open(SAM.Reader, "$filename.$(idx-1).sam") ];
+						for rd in open(SAM.Reader, "$filename.$(idx-1).sam")
+							if SAM.tempname(rd) in share_name
+								push!(full_buffer[idx], (SAM.tempname(rd), rd))
+							else
+								tmp = foo(rd, refName2Seq)
+								if tmp.qual != "Useless"
+					    			finder!(tmp, cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
+									if tmp.able
+										push!(part_buffer[idx], tmp)
+									end
+								end
+							end
+						 end
                     else
-                        sam_buffer[idx] = Array{SAM.Record, 1}()
+                        part_buffer[idx] = Array{Myread, 1}()
                     end
             end
-            rs = collect(Iterators.flatten(sam_buffer))
-            append!(full_reads, [ (SAM.tempname(rd), rd) for rd in rs ])
-            filter!(x -> !(SAM.tempname(x) in rd1names && SAM.tempname(x) in rd2names), rs )
-
-            part_buffer = Array{Myread, 1}(undef, length(rs))
-
-            
-
-            if length(rs) < nthreads()
-                for idx in 1:length(rs)
-                    part_buffer[idx] = foo(rs[idx], refName2Seq)
-                end
-            else
-                sp = split4Multi(length(rs), nthreads())
-                Threads.@threads for block in 1:nthreads()
-                        for idx in sp[block]:sp[block+1]-1
-                            part_buffer[idx] = foo( rs[idx], refName2Seq )
-                        end
-                end
-            end
-
-            append!(col, filter(x-> length(x.seq) > args["kmer"] && !(DNA_N in x.seq), part_buffer))
+			append!(full_reads, collect(Iterators.flatten(full_buffer)))
+			part_reads = collect(Iterators.flatten(part_buffer))
+            append!(col, filter(x-> length(x.seq) > args["kmer"] && !(DNA_N in x.seq), part_reads))
 
             for idx in 1:Threads.nthreads()
                 if isfile("$filename.$(idx-1).sam")
@@ -266,13 +261,11 @@ function read_alignrs(args, vbam, jbam, tmp_name)
                             rfp1, rfp2 = SAM.refname(p1), SAM.refname(p2)
                             final = SAM.sequence(p1)[s:t]
                             if ! (DNA_N in final)
-                                push!(Vpart, Myread(DNASequence(final),
-                                        SAM.quality(String, p1)[s:t],
-                                        rfp1,
-                                        rfp2,
-                                        "None",
-                                        false
-                                        ))
+                                tmp = Myread(DNASequence(final), SAM.quality(String, p1)[s:t], rfp1, rfp2, "None", false)
+								finder!(tmp, cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
+								if tmp.able
+                                    push!(Vpart, tmp)
+                                end
                             end
                         end
                     end          
@@ -305,9 +298,7 @@ function read_alignrs(args, vbam, jbam, tmp_name)
 
 end
 
-#ratio(x::Int, y::Int)::Bool = x>y ? true : true
 ratio(x::Int, y::Int)::Bool = x>y ? (x <= 10*y) : (10*x>= y)
-#const Int2Alpha = Dict{Int, Char}(1=>'A',2=>'C',3=>'G',4=>'T')
 const Int2Alpha = ['A','C','G','T']
 
 function fillpo_right!(potential, seg, kpool)
@@ -465,31 +456,6 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
     selfLog("Searching from full candidate reads")
     the_kmer::Int64 = args["kmer"]
 
-    # Threads.@threads for idx in 1:length(Vpart)
-    #     finder!(Vpart[idx], cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()])
-    # end
-
-    if length(Vpart) <= nthreads() * 100
-        finder!(Vpart, cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
-    else
-        sp = split4Multi(length(Vpart), nthreads())
-        Threads.@threads for idx in 1:nthreads()
-            finder!(Vpart[ sp[idx]:sp[idx+1]-1 ], cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
-        end
-    end
-
-    if length(Jpart) <= nthreads() * 100
-        finder!(Jpart, cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
-    else
-        sp = split4Multi(length(Jpart), nthreads())
-        Threads.@threads for idx in 1:nthreads()
-            finder!(Jpart[ sp[idx]:sp[idx+1]-1 ], cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
-        end
-    end
-
-    filter!(x->x.able, Vpart)
-	filter!(x->x.able, Jpart)
-
 	selfLog("Directly found $( length([rd for rd in Vpart if rd.cdr3!="None"]) + length([rd for rd in Jpart if rd.cdr3!="None"]) )")
     selfLog("Break partital reads into kmer")
     pV = filter(x->x.cdr3=="None", Vpart)
@@ -518,15 +484,17 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
     terms = keys(term_label)
     #terms_stand = Dict([ (key, most_common(counter(term_label[key]))[1][1]) for key in terms ])
     kmer_pool = merge(bbk(Vpart, the_kmer), bbk(Jpart, the_kmer))
-
-    #TODO(chensy): where is the code to delete repeat ???
+    for alp in ['A', 'T', 'G', 'C']
+        tmp = DNAKmer(repeat('G', the_kmer))
+        if kmer_pool[tmp]!=0
+            kmer_pool.counts[tmp] = 0
+        end
+    end
 
     selfLog("Extending")
 
     if length(pV) < nthreads()
-        for rd in pV
-            extend_right!(rd, kmer_pool)
-        end
+        map(x->extend_right(x, kmer_pool), pV)
         finder!(pV, cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
     else
         sp = split4Multi(length(pV), nthreads())
@@ -534,13 +502,10 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
             for rd in pV[ sp[idx]:sp[idx+1]-1 ]
                 extend_right!(rd, kmer_pool)
             end
+        
             finder!(pV[ sp[idx]:sp[idx+1]-1 ], cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
         end
     end
-    # Threads.@threads for idx in 1:length(pV)
-    #     extend_right!(pV[idx], kmer_pool)
-    #     finder!(pV[idx], cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
-    # end
 
     if length(pJ) < nthreads()
         map(x->extend_left!(x, kmer_pool), pJ)
@@ -555,28 +520,6 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
         end
     end
 
-
-    for rd in Vpart
-        if rd.js == "None" && rd.seq[end-args["kmer"]+1:end] in terms
-            just_holder = terms_stand[rd.seq[end-args["kmer"]+1:end]]
-            if 'V' in just_holder
-                continue
-            end
-            rd.js = just_holder
-        end
-    end
-
-    for rd in Jpart
-        if rd.vs == "None" && rd.seq[1:args["kmer"]] in terms
-            just_holder = terms_stand[rd.seq[1:args["kmer"]]]
-            if 'J' in just_holder
-                continue
-            end
-            rd.vs = just_holder 
-        end
-    end
-
-    #TODO(chensy) memory allocation
     ss = length(filter(x->x.cdr3!="None", pV)) + length(filter(x->x.cdr3!="None", pJ))
     selfLog("Recuse reads: $ss")
     selfLog("Extending end")
@@ -584,6 +527,43 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
     filter!(x->x.cdr3 != "None", Vpart)
     filter!(x->x.cdr3 != "None", Jpart)
     selfLog("Error correction")
+
+
+    for rd in Vpart
+        if rd.js == "None"
+            pos = length(rd.seq)
+            for idx in 0:min(pos-the_kmer-1, 6)
+                temp_seq = rd.seq[ pos-idx-the_kmer+1:pos-idx]
+                if temp_seq in terms
+                    just_holder = terms_stand[temp_seq]
+                    if 'V' in in just_holder
+                        continue
+                    else
+                        rd.js = just_holder
+                        break
+                    end
+                end
+            end
+        end
+    end
+
+    for rd in Jpart
+        if rd.vs == "None" 
+            pos = length(rd.seq)
+            for idx in 0:min(pos-the_kmer, 6)
+                temp_seq = rd.seq[1+idx:the_kmer+idx]
+                if temp_seq in terms
+                    just_holder = terms_stand[rd.seq[1:args["kmer"]]]
+                    if 'J' in just_holder
+                        continue
+                    else
+                        rd.vs = just_holder 
+                        break
+                    end
+                end
+            end
+        end
+    end
 
     gps = [ (lgt, [[ it for it in Vpart if length(it.cdr3) == lgt ]; [ it for it in Jpart if length(it.cdr3) == lgt ]] ) for lgt in 21:105 ]
     filter!(x -> length(x[2]) > 0, gps)
@@ -713,10 +693,10 @@ function split_10X(f1, f2)
 
 end
 
-function mainflow(parsed_args, vbam, jbam, tmp_name)
+function mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
 
     Vpart, Jpart, tmp_name = read_alignrs(parsed_args, vbam, jbam, tmp_name)
-    catt(Vpart, Jpart, tmp_name, parsed_args, parsed_args["output"])
+    catt(Vpart, Jpart, tmp_name, parsed_args, outfix)
 
 end
 
@@ -745,10 +725,10 @@ function proc(args)
     parsed_args = args
 
     #used in developlent environment
-    if length(parsed_args["processed"]) > 0
+    if length(parsed_args["proV"]) > 0
  
         selfLog("Handing processed files ")
-        Vpart, Jpart, tmp_name = read_alignrs(parsed_args, [parsed_args["processed"][1]], [parsed_args["processed"][2]], "middle")
+        Vpart, Jpart, tmp_name = read_alignrs(parsed_args, parsed_args["proV"], parsed_args["proJ"], "middle")
         catt(Vpart, Jpart, tmp_name, parsed_args, parsed_args["output"][1])
         selfLog("Handle end")
 
@@ -762,10 +742,11 @@ function proc(args)
         for (name, url) in ll
             
             vbam, jbam, tmp_name =  input_convert( parsed_args, url )
+            mainflow(parsed_args, vbam, jbam, tmp_name, parsed_args["output"][1])
            
             parsed_args["chain"] = "TRA"
             vbam, jbam, tmp_name =   input_convert( parsed_args, url )
-            mainflow(parsed_args, vbam, jbam, tmp_name)
+            mainflow(parsed_args, vbam, jbam, tmp_name, parsed_args["output"][1])
             parsed_args["chain"] = "TRB"
 
         end
@@ -778,7 +759,7 @@ function proc(args)
                 selfLog("Handing Paired-end sample: $(f1)")
 
                 vbam, jbam, tmp_name =   input_convert(parsed_args, f1, input_file2 = f2)
-                mainflow(parsed_args, vbam, jbam, tmp_name)
+                mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
 
                 selfLog("Handle end")
 
@@ -787,7 +768,7 @@ function proc(args)
                     if parsed_args["chain"] == "TRB"
                         parsed_args["chain"] = "TRA"
                         vbam, jbam, tmp_name =   input_convert( parsed_args, f1, input_file2 = f2)
-                        mainflow(parsed_args, vbam, jbam, tmp_name)
+                        mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
                         parsed_args["chain"] = "TRB"
                     end
                 end
@@ -812,7 +793,7 @@ function proc(args)
                 end
 
                 vbam, jbam, tmp_name =   input_convert( parsed_args, inp )
-                mainflow(parsed_args, vbam, jbam, tmp_name)
+                mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
 
                 selfLog("Handle end")
 
@@ -820,7 +801,7 @@ function proc(args)
                     if parsed_args["chain"] == "TRB"
                         parsed_args["chain"] = "TRA"
                         vbam, jbam, tmp_name =   input_convert( parsed_args, inp )
-                        mainflow(parsed_args, vbam, jbam, tmp_name)
+                        mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
                         parsed_args["chain"] = "TRB"
                     end
                 end
@@ -837,9 +818,6 @@ function proc(args)
     
 
 end
-# input details
-include("/home/feifei/config.jl")
-#load reference 
 
 if !isempty(parsed_args["output"])
     proc(parsed_args)

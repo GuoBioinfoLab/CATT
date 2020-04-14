@@ -1,20 +1,13 @@
-const ref_prefix = "/home/chensy/jatt/resource"
-const bwa_path = "bwa"
-const bowtie2_path = "bowtie2"
-const samtools_path = "samtools"
-
-# const ref_prefix = "/catt/resource"
-# const bwa_path = "/catt/bwa-0.7.17/bwa"
-# const bowtie2_path = "/catt/"
-# const samtools_path = "/catt/samtools-1.9/samtools"
-
+const ref_prefix = "/home/feifei/resource"
+const bwa_path = "/home/feifei/bwa-0.7.17/bwa"
+const samtools_path = "/home/feifei/samtools-1.9/samtools"
 
 const refg = Dict(
 
     "hs" => Dict(
         "TRB" => Dict(
             "CDR3" => Dict(
-                "vregion" => "$ref_prefix/TR/hs/TRB/TRBV-gai5-DNA.fa",
+                "vregion" => "$ref_prefix/TR/hs/TRB/TRBV-gai6-DNA.fa",
                 "jregion" => "$ref_prefix/TR/hs/TRB/TRBJ-gai3-DNA.fa",
                 "cmotif" => "(LR|YF|YI|YL|YQ|YR)C(A|S|T|V|G|R|P|D)",
                 "fmotif" => "[FTYH]{1}FG[ADENPQS]{1}G",
@@ -73,12 +66,12 @@ const refg = Dict(
                 "foffset" => 1,
             ),
             "CDR3" => Dict(
-                "vregion" => "$ref_prefix/TR/hs/TRA/TRAV-gai2-DNA.fa",
+                "vregion" => "$ref_prefix/TR/hs/TRA/TRAV-gai3-DNA.fa",
                 "jregion" => "$ref_prefix/TR/hs/TRA/TRAJ-gai2-DNA.fa",
-		        "cmotif" => "[EHILMSTV]{1}Y[FILY]{1}C[AGILV]{1}",
-                "fmotif" => "[AMTIYVSFERQN]{1}F((ARG)|(G[A-Z]{1}G))",
+				"cmotif" => "[EHILMSTV]{1}Y[FILY]{1}C[AGILV]{1}",
+                "fmotif" => "(LA|YI|FI|II|LY|LM|PT|TI|LV|ST|VT|LT|LI|LQ|MR|VI|FV|FQ|LF|LL|FE|FT|LS|LN|FY)F((ARG)|(G[A-Z]{1}G))",
                 "coffset" => 3,
-                "foffset" => 1,
+                "foffset" => 0,
                 "innerC" => "place_holder",
                 "innerF" => "place_holder",
             )

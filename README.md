@@ -238,3 +238,4 @@ The output file of CATT is a CSV format file named like `{prefix}_{chain}_{regio
 ---
 
 Copyright [Guo Lab](http://bioinfo.life.hust.edu.cn/) , [College of Life Science and Technology](http://life.hust.edu.cn/) , [HUST](http://www.hust.edu.cn/) , China
+\ No newline at end of file

@@ -351,29 +351,8 @@ function Extract_Motif(seq::String, cmotif::Regex, fmotif::Regex, coffset::Int64
     return (res, holder)
 end
 
-function finder!( rd::Myread, cmotif::Regex, fmotif::Regex, coffset::Int64, foffset::Int64)
+function finder!( rd::Myread, cmotif::Regex, fmotif::Regex, coffset::Int64, foffset::Int64, innerC::Regex, innerF::Regex)
 
-    @views lgt = length(rd.seq)
-    #group_range::Array{Union{Int64,UnitRange{Int64}}}{Int64} = nothing
-    #aa_seq::BioSequence{AminoAcidAlphabet} = nothing
-
-    for shift in 1:3
-        aa_seq = String(translate(rd.seq[shift:lgt-(lgt-shift+1)%3]))
-        statu_code, group_range = Extract_Motif2(aa_seq, cmotif, fmotif, coffset, foffset)
-        #if group_len>0
-        rd.able = rd.able || (statu_code > 0)
-        if statu_code == 3
-                rd.cdr3 = convert(String, rd.seq[group_range .+ (shift-1)])
-                rd.qual = rd.qual[group_range .+ (shift-1)]
-            return
-        end
-    end
-    nothing
-end
-
-function finder!( rds::Array{Myread, 1}, cmotif::Regex, fmotif::Regex, coffset::Int64, foffset::Int64)
-
-    for rd in rds
         @views lgt = length(rd.seq)
         for shift in 1:3
             aa_seq = String(translate(rd.seq[shift:lgt-(lgt-shift+1)%3]))
@@ -386,7 +365,6 @@ function finder!( rds::Array{Myread, 1}, cmotif::Regex, fmotif::Regex, coffset::
                 break
             end
         end
-    end
     nothing
 end
 
