@@ -31,6 +31,14 @@ The tool has the following feature:
 
 ---
 
+Version 1.8 (2020-04)
+
+* Bug fixes
+* Reduce memory consumption
+* Update reference genome to latest IMGT version
+* Add a option for user to specfic k-mer length in assembly
+
+
 Version 1.7 (2020-03)
 
 * Bug fixes
@@ -109,13 +117,13 @@ To run CATT stand-alone, some packages and softwares are needed:
 * bwa_path: The executive file path of bwa, like `/usr/bin/bwa`. If the bwa is in the $PATH, this can be simply set as `bwa`
 * Samtools_path: The executive file path of samtools
 
-2. Several parameters should be set well in the `catt_vX.X.jl`
+2. Several parameters should be set well in the `catt.jl`
 
 * In Line 18-20, the absolute path to file `reference.jl`, `Jtool.jl`
 
 3. Several parameters should be set well in the `catt`
 
-*  In Line 47, the path of `config.jl`, make sure it is consistent with the path in `catt_vX.X.jl`
+*  In Line 47, the path of `config.jl`, make sure it is consistent with the path in `catt.jl`
 
 4. make `catt` executable and add it to global variable
 

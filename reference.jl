@@ -102,6 +102,8 @@ const refg = Dict(
                 "jregion" => "$ref_prefix/TR/ms/TRBJ-CDR3.fa",
                 "cmotif" => "[AGPST]{1}C(LHV|FYI|LYF|LFV|FYV|LYL|MYL|LYT|TCY|LYV|FYL|FYT|LYM|LYI|FYM)",
                 "fmotif" => "(SF|FF|YF|HF|TF|DH|LF)G[ADMREKLSPH]{1}G",
+                "innerC" => "place_holder",
+                "innerF" => "place_holder"
                 "coffset" => 0,
                 "foffset" => 1,
             ),
