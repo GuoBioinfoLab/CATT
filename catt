@@ -52,6 +52,7 @@ if __name__ == '__main__':
             handle.write(line.replace('\'', "\""))
         handle.write(")")
 
-    os.system('export JULIA_DEPOT_PATH=/Users/kroaity/.julia && export JULIA_NUM_THREADS=%d && julia ./catt.jl' % getattr(args, "thread"))
+    #os.system('export JULIA_DEPOT_PATH=/Users/kroaity/.julia && export JULIA_NUM_THREADS=%d && julia ./catt.jl' % getattr(args, "thread"))
+    os.system('export JULIA_NUM_THREADS=%d && julia ./catt.jl' % getattr(args, "thread"))
 
 

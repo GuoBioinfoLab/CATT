@@ -120,11 +120,12 @@ To run CATT stand-alone, some packages and softwares are needed:
 2. Several parameters should be set well in the `catt.jl`
 
 * In Line 18-20, the absolute path to file `reference.jl`, `Jtool.jl`
+* In Line 587, the absolute path to file `prob.csv`
 
 3. Several parameters should be set well in the `catt`
 
 *  In Line 48, the path of `config.jl`, make sure it is consistent with the path in `catt.jl`
-*  In line 55, the path to `catt.jl`
+*  In line 56, the path to `catt.jl`
 
 4. make `catt` executable and add it to global variable
 
@@ -244,6 +245,10 @@ The output file of CATT is a CSV format file named like `{prefix}_{chain}_{regio
 - Q: Got `permission denied while trying to connect to the Docker` when try to build docker image
 
     A: Make sure your user is in the docker group that have permission to use docker command
+
+- Q: Got `ERROR: LoadError: failed process: Process(`samtools view -F 2308`, ProcessExited(1))`
+
+- A: Please update the samtools to latest version.
 
 ---
 
