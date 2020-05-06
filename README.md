@@ -120,7 +120,7 @@ To run CATT stand-alone, some packages and softwares are needed:
 2. Several parameters should be set well in the `catt.jl`
 
 * In Line 18-20, the absolute path to file `reference.jl`, `Jtool.jl`
-* In Line 587, the absolute path to file `prob.csv`
+* In Line 604, the absolute path to file `prob.csv`
 
 3. Several parameters should be set well in the `catt`
 
