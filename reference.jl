@@ -1,6 +1,6 @@
-const ref_prefix = "/home/feifei/resource"
-const bwa_path = "/home/feifei/bwa-0.7.17/bwa"
-const samtools_path = "/home/feifei/samtools-1.9/samtools"
+const ref_prefix = "/Users/kroaity/Documents/catt/github/resource"
+const bwa_path = "bwa"
+const samtools_path = "samtools"
 
 const refg = Dict(
 
@@ -103,7 +103,7 @@ const refg = Dict(
                 "cmotif" => "[AGPST]{1}C(LHV|FYI|LYF|LFV|FYV|LYL|MYL|LYT|TCY|LYV|FYL|FYT|LYM|LYI|FYM)",
                 "fmotif" => "(SF|FF|YF|HF|TF|DH|LF)G[ADMREKLSPH]{1}G",
                 "innerC" => "place_holder",
-                "innerF" => "place_holder"
+                "innerF" => "place_holder",
                 "coffset" => 0,
                 "foffset" => 1,
             ),

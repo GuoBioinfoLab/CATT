@@ -36,7 +36,7 @@ Version 1.8 (2020-04)
 * Bug fixes
 * Reduce memory consumption
 * Update reference genome to latest IMGT version
-* Add a option for user to specfic k-mer length in assembly
+* Add a option for user to specific k-mer length in assembly
 
 
 Version 1.7 (2020-03)
@@ -123,7 +123,8 @@ To run CATT stand-alone, some packages and softwares are needed:
 
 3. Several parameters should be set well in the `catt`
 
-*  In Line 47, the path of `config.jl`, make sure it is consistent with the path in `catt.jl`
+*  In Line 48, the path of `config.jl`, make sure it is consistent with the path in `catt.jl`
+*  In line 55, the path to `catt.jl`
 
 4. make `catt` executable and add it to global variable
 
@@ -203,6 +204,7 @@ option:
 - `--region`: Analysis CDR region. Could be CDR1/CDR2/CDR3 . **default: CDR3**
 - `--chain`: Analysis TCR chain. Could be TRA,TRB,IGH. **default: TRB**
 - `--species`: Could be `hs,ms,pig` **default: hs**
+- `-k`: Kmer length in assembly. Could be automatically be inferred from data if the option is not set, or accept a integer range in [5, 32]
 
 > Advance
 

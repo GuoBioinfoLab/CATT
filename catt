@@ -45,13 +45,13 @@ def convert( arg ):
 if __name__ == '__main__':
 
     args = CommandLineParser()
-    with open("/home/feifei/config.jl", "w") as handle:
+    with open("./config.jl", "w") as handle:
         handle.write("parsed_args = Dict(\n")
         for arg in vars(args):
             line = "{} => {},\n".format(convert(arg), convert((getattr(args, arg))))
             handle.write(line.replace('\'', "\""))
         handle.write(")")
 
-    os.system('export JULIA_DEPOT_PATH=/home/feifei/.julia && export JULIA_NUM_THREADS=%d && /home/feifei/julia-1.1.1/bin/julia /home/feifei/catt.jl' % getattr(args, "thread"))
+    os.system('export JULIA_DEPOT_PATH=/Users/kroaity/.julia && export JULIA_NUM_THREADS=%d && julia ./catt.jl' % getattr(args, "thread"))
 
 
