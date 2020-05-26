@@ -1,19 +1,22 @@
-# CATT Homepage
+# CATT
 
-![](corp-7cad705c-77eb-4983-94ec-b09b0f6f7583.png)
+<a href=''><img src='corp-7cad705c-77eb-4983-94ec-b09b0f6f7583.png' align="right" height="250" /></a>
 
-# **CATT**
 
----
 
-An ultra-sensitive and accurate tool for characterizing **T cell receptor sequence** in bulk and single cell TCR-Seq and RNA-Seq data. The tool can be found in:
+
+
+## What is **CATT**
+
+
+
+CATT is an ultra-sensitive and accurate tool for characterizing **T cell receptor sequence** in bulk and single cell TCR-Seq and RNA-Seq data. The tool can be found in:
 
 - HomePage: [http://bioinfo.life.hust.edu.cn/CATT](http://bioinfo.life.hust.edu.cn/CATT/Homepage.html)
 - Github: [https://github.com/GuoBioinfoLab/CATT](https://github.com/GuoBioinfoLab/CATT)
+- Reference: https://doi.org/10.1093/bioinformatics/btaa432
 
 # Overview
-
----
 
 **CATT**(**C**har**A**cterzing **T**CR reper**t**oires) is a tool for detecting CDR3 sequences from any TCR containing raw sequencing data (including TCR-seq, RNA-seq, scRNA-seq and any TCR contained sequencing data)
 
@@ -34,9 +37,14 @@ The tool has the following feature:
 Version 1.8 (2020-04)
 
 * Bug fixes
+
 * Reduce memory consumption
+
 * Update reference genome to latest IMGT version
+
 * Add a option for user to specific k-mer length in assembly
+
+  
 
 
 Version 1.7 (2020-03)
@@ -102,7 +110,7 @@ To run CATT stand-alone, some packages and softwares are needed:
   * argparse
 * Julia >= 1.0
   * DataFrames
-  * CSV
+  * CSV >= 0.5.14
   * GZip
   * BioAlignment
   * BioSequence < 2.0
@@ -184,7 +192,7 @@ catt -f testSample.fq -o testSampleOutput -t 2
 
 Where `$PWD` is the path of folder contain your input data (absolute path, or just `$PWD` if input file is in current folder)
 
-### Basic
+## Basic
 
 ```shell
 # For single-end input:
@@ -207,7 +215,7 @@ option:
 - `--species`: Could be `hs,ms,pig` **default: hs**
 - `-k`: Kmer length in assembly. Could be automatically be inferred from data if the option is not set, or accept a integer range in [5, 32]
 
-> Advance
+## Advance
 
 ### Multiple input files
 
@@ -228,7 +236,7 @@ As 10X sequencing becoming popular nowadays, we add the support for processing 1
 
     catt [option] --tenX --f1 R1 --f2 R2 -o outputName
 
-> Output explain
+# Output explain
 
 The output file of CATT is a CSV format file named like `{prefix}_{chain}_{region}.CATT.csv` . The file contain 7 columns:
 
@@ -240,8 +248,6 @@ The output file of CATT is a CSV format file named like `{prefix}_{chain}_{regio
 
 # **FAQ**
 
----
-
 - Q: Got `permission denied while trying to connect to the Docker` when try to build docker image
 
     A: Make sure your user is in the docker group that have permission to use docker command
@@ -250,7 +256,14 @@ The output file of CATT is a CSV format file named like `{prefix}_{chain}_{regio
 
 - A: Please update the samtools to latest version.
 
+
+
+# Credit
+
+Please cite our paper when using CATT
+
+* Si-Yi Chen, Chun-Jie Liu, Qiong Zhang, An-Yuan Guo, An ultrasensitive T-cell receptor detection method for TCR-Seq and RNA-Seq data, *Bioinformatics*, , btaa432, https://doi.org/10.1093/bioinformatics/btaa432
+
 ---
 
 Copyright [Guo Lab](http://bioinfo.life.hust.edu.cn/) , [College of Life Science and Technology](http://life.hust.edu.cn/) , [HUST](http://www.hust.edu.cn/) , China
-\ No newline at end of file
