@@ -14,7 +14,7 @@ CATT is an ultra-sensitive and accurate tool for characterizing **T cell recepto
 
 - HomePage: [http://bioinfo.life.hust.edu.cn/CATT](http://bioinfo.life.hust.edu.cn/CATT/Homepage.html)
 - Github: [https://github.com/GuoBioinfoLab/CATT](https://github.com/GuoBioinfoLab/CATT)
-- Reference: https://doi.org/10.1093/bioinformatics/btaa432
+- For detials please see our [Bioinformatics publication](!https://doi.org/10.1093/bioinformatics/btaa432)
 
 # Overview
 
