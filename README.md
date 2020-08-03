@@ -207,11 +207,12 @@ catt [option] --bam -f inputFile -o outputName
 
 option:
 
-- `-t {numberOfThreads}`: number of alignment threads. **default: 4**
+- `-t {numberOfThreads}`: number of  threads used by CATT. **default: 4**
+- `-botw [int]`: number of threads used for alignment. **default: 4**
 - `-sc`: Using Single-Cell mode. Using more aggressive error correction model. For single cell analysis, user should input each cell as a single file.
-- `--bam`: Input format is bam/sam.
-- `--region`: Analysis CDR region. Could be CDR1/CDR2/CDR3 . **default: CDR3**
-- `--chain`: Analysis TCR chain. Could be TRA,TRB,IGH. **default: TRB**
+- `--bam [file_path]`: Input format is bam/sam.
+- `--region`: Analysis CDR region. Could be one of CDR1/CDR2/CDR3 . **default: CDR3**
+- `--chain`: Analysis TCR chain. Could be one of TRA/TRB/IGH. **default: TRB**
 - `--species`: Could be `hs,ms,pig` **default: hs**
 - `-k`: Kmer length in assembly. Could be automatically be inferred from data if the option is not set, or accept a integer range in [5, 32]
 
