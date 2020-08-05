@@ -1,22 +1,22 @@
 using BioAlignments
+using FASTX
+using XAM
 using BioSequences
 using DataStructures
 
+@inline encoded_data_type(::Type{Mer{A,K}}) where {A,K} = UInt64
+@inline encoded_data_type(::Type{BigMer{A,K}}) where {A,K} = UInt128
+@inline encoded_data_type(x::AbstractMer) = encoded_data_type(typeof(x))
+@inline encoded_data(x::AbstractMer) = reinterpret(encoded_data_type(typeof(x)), x)
+
 mutable struct Myread
-    seq::DNASequence
+    seq::LongSequence{DNAAlphabet{4}}
     qual::String
     vs::String
     js::String
     cdr3::String
     able::Bool
 end
-
-# Myread(seq::DNASequence,qual::String,vs::String,js::String) = Myread(seq, qual, vs, js, "None", false)
-# Myread(seq::String,qual::String,vs::String,js::String) = Myread(DNASequence(seq),qual,vs,js, "None", false)
-# Myread(org::Myread, c3::String) = Myread(org.seq, org.qual, org.vs, org.js, "None", false)
-# Myread(a::String, b::String) = Myread(DNASequence(a), b, "None", "None", "None", false)
-
-
 
 const score_model = AffineGapScoreModel(
     match = 5,
@@ -32,15 +32,15 @@ function showAAseq( rd::Myread )
     return [ mytranslate(rd.seq[shift:lgt-(lgt-shift+1)%3]) for shift in 1:3 ]
 end
 
-function showAAseq( rd::T ) where T<:Union{String, DNASequence}
+function showAAseq( rd::T ) where T<:Union{String, LongDNASeq}
     lgt = length(rd)
     return [ mytranslate(rd[shift:lgt-(lgt-shift+1)%3]) for shift in 1:3 ]
 end
 
 function selBestMatchD(seq::String, TRBDs )::String
 
-    res = [ (score(pairalign(problem, DNASequence(seq), DNASequence(ref), score_model)), ref, name ) for (name, ref) in TRBDs ]
-    filter!( x -> x[1] + length(DNASequence(seq)) - length(x[2]) + 4 > 35 , res )
+    res = [ (score(pairalign(problem, LongDNASeq(seq), LongDNASeq(ref), score_model)), ref, name ) for (name, ref) in TRBDs ]
+    filter!( x -> x[1] + length(LongDNASeq(seq)) - length(x[2]) + 4 > 35 , res )
     sort!(res, rev=true, by = x -> x[1])
 
     if length(res) > 0
@@ -51,7 +51,7 @@ function selBestMatchD(seq::String, TRBDs )::String
 
 end
 
-@inline function HammingDistance(s1::T, s2::T; skip::Int64=0)::Int64 where T<:Union{String, DNASequence}
+@inline function HammingDistance(s1::T, s2::T; skip::Int64=0)::Int64 where T<:Union{String, LongDNASeq}
     cnt::Int64 = 0
     for idx in (skip+1):length(s1)-skip
         if s1[idx] != s2[idx]
@@ -137,24 +137,25 @@ function iterate_ff(it::String)::String
     [ part * chr for chr in ['A', 'T', 'G', 'C'] ]
 end
 
-function iterate_ff(it::Kmer{T,K}) where {T,K}
-    cc = UInt64(it)
-    return [ Kmer{T,K}( cc<<2 | i) for i in 0:3]
-end
-
-function iterate_rv(it::Kmer{T,K}) where {T,K}
-    cc = UInt64(it)
-    return [ Kmer{T,K}( cc>>2 | i<<((K-1)*2) ) for i in 0:3 ]
-end
-
 function iterate_rv(it::String)::String
     part = it[2:end]
     [ chr * part for chr in ['A', 'T', 'G', 'C'] ]
 end
 
+#right
+function iterate_ff(it::Mer{DNAAlphabet{T},K}) where {T,K}
+    cc = encoded_data(it)
+    return [ Mer{DNAAlphabet{T},K}( cc<<2 | i) for i in 0:3]
+end
+
+function iterate_rv(it::Mer{DNAAlphabet{T},K}) where {T,K}
+    cc = encoded_data(it)
+    return [ Mer{DNAAlphabet{T},K}( cc>>2 | i<<((K-1)*2) ) for i in 0:3 ]
+end
+
 function mytranslate(orgseq::String)::String
     lgt = length(orgseq)
-    seq = DNASequence(orgseq)
+    seq = LongDNASeq(orgseq)
     String([ AAcode[(seq[j],seq[j+1],seq[j+2])] for j in 1:3:lgt ])
 end
 
