@@ -384,7 +384,7 @@ function extend_left!(rd::Myread, kpool::Composition{DNAMer{L}}) where{L}
 end
 
 function depcature(reads::Array{Myread, 1}, the_kmer::Int64)
-    return reduce( (x,y)->merge!(x,y),
+    return reduce( merge,
     ( composition(each(DNAMer{the_kmer}, ins.seq)) for ins in reads))
 end
 
@@ -418,7 +418,7 @@ function bbk(reads::Array{Myread, 1}, the_kmer::Int64)
     Threads.@threads for idx in 1:nthreads()
         holder[idx] = depcature( reads[ sp[idx]:sp[idx+1]-1 ], the_kmer)
     end
-    return reduce( (x,y)->merge!(x,y), holder )
+    return reduce( merge, holder )
 end
 
 function catt(Vpart, Jpart, tmp_name, args, outfix)

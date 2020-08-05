@@ -34,6 +34,12 @@ The tool has the following feature:
 
 ---
 
+Version 1.9 (2020-08)
+
+* Update BioSequence to 2.X
+
+* Significantly reduce the startup time
+
 Version 1.8 (2020-04)
 
 * Bug fixes
@@ -94,7 +100,20 @@ Version 1.2
 
 # Installation
 
-### Source code
+
+### Docker Image (Recommended)
+
+CATT can also be installed using **Docker**, Docker is a computer program that performs operating-system-level visualization. Using docker, users could easily install CATT and run CATT in virtual environment.
+
+1. Download and install Docker, recommend from [Hompage](https://www.docker.com) (required ubuntu ≥ 14.04 )
+
+2. Download latest CATT docker image
+```Shell
+docker pull guobioinfolab/catt:latest
+```
+This command will pull down the CATT from the docker hub (about ~5min needed to download the image, depend on the network speed).  When execution is done,  CATT have been installed successfully.
+
+### Source code (Not well tested)
 
 CATT is written in Julia and python. Download the latest verison and accompanying files from by
 
@@ -108,12 +127,16 @@ To run CATT stand-alone, some packages and softwares are needed:
 
 * Python >= 3.7
   * argparse
-* Julia >= 1.0
+* Julia >= 1.3
   * DataFrames
   * CSV >= 0.5.14
   * GZip
   * BioAlignment
-  * BioSequence < 2.0
+  * BioSequence >=2.0
+  * FASTX
+  * XAM
+  * DataStructures
+
 * BWA
 * Samtools
 
@@ -125,10 +148,12 @@ To run CATT stand-alone, some packages and softwares are needed:
 * bwa_path: The executive file path of bwa, like `/usr/bin/bwa`. If the bwa is in the $PATH, this can be simply set as `bwa`
 * Samtools_path: The executive file path of samtools
 
-2. Several parameters should be set well in the `catt.jl`
+2. In file `catt.jl`
 
-* In Line 18-20, the absolute path to file `reference.jl`, `Jtool.jl`
-* In Line 604, the absolute path to file `prob.csv`
+```Julia
+#Set the path of referece.jl prob.csv Jtool.jl and config.jl to PATH2CATT
+const PATH2CATT = "/Users/kroaity/Documents/catt/github"
+```
 
 3. Several parameters should be set well in the `catt`
 
@@ -142,18 +167,6 @@ To run CATT stand-alone, some packages and softwares are needed:
    #add catt to ~/.bashrc
    export PATH="/path/to/catt:$PATH"
    ```
-
-### Docker Image (recommand)
-
-CATT can also be installed using **Docker**, Docker is a computer program that performs operating-system-level visualization. Using docker, users could easily install CATT and run CATT in virtual environment.
-
-1. Download and install Docker, recommend from [Hompage](https://www.docker.com) (required ubuntu ≥ 14.04 )
-
-2. Download latest CATT docker image
-```Shell
-docker pull guobioinfolab/catt:latest
-```
-This command will pull down the CATT from the docker hub (about ~5min needed to download the image, depend on the network speed).  When execution is done,  CATT have been installed successfully.
 
 ### Test sample
 
