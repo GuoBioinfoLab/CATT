@@ -140,6 +140,18 @@ To run CATT stand-alone, some packages and softwares are needed:
 * BWA
 * Samtools
 
+### Known Issue
+The current version of BioSequence.jl seems have a bug which may report `UndefVarError: x not defined` during the runtime.
+
+The solution is modify the file `.julia/packages/BioSequences/k4j4J/src/composition.jl`
+
+```Julia
+// around Line 80
+    for mer in iter
+        counts[mer.fw] = get(counts, mer.fw, 0) + 1
+    end
+```
+
 #### Configure
 
 1. Several parameters should be set well in the `reference.jl`

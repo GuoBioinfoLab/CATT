@@ -196,7 +196,7 @@ function read_alignrs(args, vbam, jbam, tmp_name)
         full_reads = Array{ Tuple{String, SAM.Record}, 1}()
 
 
-        run(`rm $tmp_name.v.name.list`)
+    run(`rm $tmp_name.v.name.list`)
 	run(`rm $tmp_name.j.name.list`)
 	
         #selfLog("Zhelizashuishi?")
