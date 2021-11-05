@@ -282,6 +282,24 @@ The output file of CATT is a CSV format file named like `{prefix}_{chain}_{regio
 
 - A: Please update the samtools to latest version.
 
+# Term of use
+
+CATT is an sensitive and accurate tool for characterizing T cell receptor sequence in bulk and single cell TCR-Seq and RNA-Seq data, maintained by An-Yuan Guo Bioinformatics Lab (Guo Lab). Guo Lab may, from time to time, update the content on http://bioinfo.life.hust.edu.cn/CATT and https://github.com/GuoBioinfoLab/CATT. Guo Lab makes no warranties or representations, express or implied, with respect to any of the Content, including as to the present accuracy, completeness, timeliness, adequacy, or usefulness of any of the Content. By using this website, you agree that Guo Lab will not be liable for any losses or damages arising from your use of or reliance on the Content, or other websites or information to which this website may be linked.
+
+CATT is freely accessible for research use in an academic setting. You may view the Content solely for your own personal reference or use for research in an academic setting. All academic research use of the Content must credit CATT as the source of the Content and reference these Terms of Use; outside of scientific publication, you may not otherwise redistribute or share the Content with any third party, in part or in whole, for any purpose, without the express permission of Guo Lab.
+
+Unless you have signed a license agreement with Guo Lab, you may not use any part of the Content for any other purpose, including:
+
+use or incorporation into a commercial product or towards performance of a commercial service;
+research use in a commercial setting;
+use for patient services; or
+generation of reports in a hospital or other patient care setting.
+You may not copy, transfer, reproduce, modify or create derivative works of CATT for any commercial purpose without the express permission of Guo Lab. If you seek to use CATT for such purposes, please request the license which best describes your anticipated use of CATT below:
+
+- Research use in commercial setting
+- Use in a commercial product
+- Use for patient services or reports in a hospital setting
+- Please contact me at guoay@hust.edu.cn
 
 
 # Credit
