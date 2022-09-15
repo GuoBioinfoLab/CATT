@@ -34,6 +34,17 @@ The tool has the following feature:
 
 ---
 
+Version 1.9.1 (2022-09)
+
+* Bugs fixed
+
+* As we have developed another tools DeRR for **Single-Cell** sequencing data, it is no longer recommend using CATT to do such analysis. see: https://github.com/GuoBioinfoLab/DeRR
+
+* Simply the usage from source installation
+
+* Docker image will no longer maintained, we found that most issuse by our users are from docker related problem (user/file permission and etc ..)
+ 
+
 Version 1.9 (2020-08)
 
 * Update BioSequence to 2.X
@@ -51,12 +62,9 @@ Version 1.8 (2020-04)
 * Add a option for user to specific k-mer length in assembly
 
   
-
-
 Version 1.7 (2020-03)
 
 * Bug fixes
-
 
 
 Version 1.6 (2020-01)
@@ -101,7 +109,7 @@ Version 1.2
 # Installation
 
 
-### Docker Image (Recommended)
+### Docker Image (no long maintain)
 
 CATT can also be installed using **Docker**, Docker is a computer program that performs operating-system-level visualization. Using docker, users could easily install CATT and run CATT in virtual environment.
 
@@ -113,7 +121,7 @@ docker pull guobioinfolab/catt:latest
 ```
 This command will pull down the CATT from the docker hub (about ~5min needed to download the image, depend on the network speed).  When execution is done,  CATT have been installed successfully.
 
-### Source code (Not well tested)
+### Source code (Recommended)
 
 CATT is written in Julia and python. Download the latest verison and accompanying files from by
 
@@ -129,52 +137,31 @@ To run CATT stand-alone, some packages and softwares are needed:
   * argparse
 * Julia >= 1.3
   * DataFrames
-  * CSV >= 0.5.14
+  * CSV
   * GZip
-  * BioAlignment
-  * BioSequence >=2.0
+  * BioAlignments
+  * BioSequences
   * FASTX
   * XAM
   * DataStructures
+  `(pkg) add DataFrames CSV GZip BioAlignments BioSequences FASTX XAM DataStructures`
 
 * BWA
-* Samtools
-
-### Known Issue
-The current version of BioSequence.jl seems have a bug which may report `UndefVarError: x not defined` during the runtime.
-
-The solution is modify the file `.julia/packages/BioSequences/k4j4J/src/composition.jl`
-
-```Julia
-// around Line 80
-    for mer in iter
-        counts[mer.fw] = get(counts, mer.fw, 0) + 1
-    end
+* Samtools (recommand v1.7, some issuss may occurs in lower version)
+```Shell
+#recommand install using conda 
+conda install samtools bwa -c bioconda
 ```
 
 #### Configure
 
-1. Several parameters should be set well in the `reference.jl`
-
-* ref_prefix: The path of resource folder (contain), like `/home/XXX/catt/resource`
 * bwa_path: The executive file path of bwa, like `/usr/bin/bwa`. If the bwa is in the $PATH, this can be simply set as `bwa`
-* Samtools_path: The executive file path of samtools
+* Samtools_path: The executive file path of samtools, If the samtools is in the $PATH, this can be simply set as `samtools`
 
-2. In file `catt.jl`
-
-```Julia
-#Set the path of referece.jl prob.csv Jtool.jl and config.jl to PATH2CATT
-const PATH2CATT = "/Users/kroaity/Documents/catt/github"
-```
-
-3. Several parameters should be set well in the `catt`
-
-*  In Line 48, the path of `config.jl`, make sure it is consistent with the path in `catt.jl`
-*  In line 56, the path to `catt.jl`
-
-4. make `catt` executable and add it to global variable
+*  make `catt` executable and add it to global variable
 
    ```Shell
+   #make it executable
    chmod u+x catt
    #add catt to ~/.bashrc
    export PATH="/path/to/catt:$PATH"

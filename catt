@@ -3,6 +3,7 @@
 from optparse import OptionParser
 import argparse
 import os
+import sys
 
 def CommandLineParser():
     parser = argparse.ArgumentParser()
@@ -43,7 +44,8 @@ def convert( arg ):
         return arg
 
 if __name__ == '__main__':
-
+    
+    abp = os.path.abspath(sys.argv[0])[0:-5]
     args = CommandLineParser()
     with open("./config.jl", "w") as handle:
         handle.write("parsed_args = Dict(\n")
@@ -52,7 +54,6 @@ if __name__ == '__main__':
             handle.write(line.replace('\'', "\""))
         handle.write(")")
 
-    #os.system('export JULIA_DEPOT_PATH=/Users/kroaity/.julia && export JULIA_NUM_THREADS=%d && julia ./catt.jl' % getattr(args, "thread"))
-    os.system('export JULIA_NUM_THREADS=%d && julia ./catt.jl' % getattr(args, "thread"))
+    os.system('export JULIA_NUM_THREADS=%d && julia %s/catt.jl' % (getattr(args, "thread"), abp) )
 
 

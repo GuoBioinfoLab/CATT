@@ -15,7 +15,7 @@ using Base.Threads
 using Random
 using UUIDs
 
-const PATH2CATT = "/Users/kroaity/Documents/catt/github"
+const PATH2CATT = PROGRAM_FILE[1:end-8]
 
 include("$PATH2CATT/reference.jl")
 include("$PATH2CATT/Jtool.jl")
@@ -34,7 +34,8 @@ end
 
 function map2align(input_file::String, ref::String, fasta_flag::Cmd, prefix::String, threads::Int64, score::Int64 = 20)::String
 
-    run(pipeline(`$bwa_path mem -v 1 -t $threads -k 8 -A 1 -B 2 -L 0 -T 12 $ref $input_file`, stdout=pipeline(`$samtools_path view -h -F 2308 `, "$prefix.sam"), stderr="backup.jl"))
+    println(`$bwa_path mem -v 1 -t $threads -k 8 -A 1 -B 2 -L 0 -T 12 $ref $input_file`)
+    run(pipeline(`$bwa_path mem -v 1 -t $threads -k 8 -A 1 -B 2 -L 0 -T 12 $ref $input_file`, stdout=pipeline(`$samtools_path view -h -F 2308`, "$prefix.sam"), stderr="backup.jl"))
     return "$prefix.sam"
 
 end
@@ -584,7 +585,7 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
         end
     end 
 
-    tab = CSV.read("$PATH2CATT/prob.csv")
+    tab = CSV.read("$PATH2CATT/prob.csv", DataFrame)
     bayes = Dict()
     for col in [ 1,2,3,-3,-2,-4 ]
         rep = col + 1
