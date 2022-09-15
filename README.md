@@ -133,9 +133,9 @@ git clone https://github.com/GuoBioinfoLab/CATT.git
 
 To run CATT stand-alone, some packages and softwares are needed:
 
-* Python >= 3.7
+* Python >= 3.7 (make sure the path is /usr/bin/python, or change the line 1 in catt)
   * argparse
-* Julia >= 1.3
+* Julia >= 1.3 (1.6.3 was used for devleopment)
   * DataFrames
   * CSV
   * GZip
@@ -144,6 +144,7 @@ To run CATT stand-alone, some packages and softwares are needed:
   * FASTX
   * XAM
   * DataStructures
+  
   `(pkg) add DataFrames CSV GZip BioAlignments BioSequences FASTX XAM DataStructures`
 
 * BWA

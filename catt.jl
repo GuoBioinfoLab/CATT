@@ -1,8 +1,8 @@
 #=
 CATT julia version:
-- version: 1.8
+- version: 1.9.1
 - Author: kroaity
-- Date: 2020-04-11
+- Date: 2022-09-15
 =#
 
 using Distributed
@@ -34,9 +34,49 @@ end
 
 function map2align(input_file::String, ref::String, fasta_flag::Cmd, prefix::String, threads::Int64, score::Int64 = 20)::String
 
-    println(`$bwa_path mem -v 1 -t $threads -k 8 -A 1 -B 2 -L 0 -T 12 $ref $input_file`)
-    run(pipeline(`$bwa_path mem -v 1 -t $threads -k 8 -A 1 -B 2 -L 0 -T 12 $ref $input_file`, stdout=pipeline(`$samtools_path view -h -F 2308`, "$prefix.sam"), stderr="backup.jl"))
+    tmp_name = "/tmp/$(uuid1())"
+
+    # Change B to 2 2020.11.11
+    # When add merege IG and TR gene together, strict mapping is need to ensure there wound't be mismapping which may cause high error rate in SAM
+    run(pipeline(`$bwa_path mem -v 0 -SP -t $threads -k 10 -A 1 -B 2 -L 0 -T $score $ref $input_file`, 
+        stdout=pipeline(
+            `$samtools_path sort -O SAM -t AS`,
+            `$samtools_path view -F 2308`,
+            `tac`,
+            `awk -F ' ' '!a[$1]++'`,
+            `$samtools_path view -h -T $ref`,
+            "$prefix.sam"
+        ),
+        stderr="$tmp_name"
+    ))
     return "$prefix.sam"
+
+end
+
+@inline function HammingDistanceG4(s1, s2, upper::Int64=10)::Bool
+    cnt::Int64 = 0
+    for idx in 1:length(s1)
+            if s1[idx] != s2[idx]
+                (cnt += 1) > upper ? (return false) : nothing
+            end
+    end
+    return true
+end
+
+
+function real_score(rd::SAM.Record, ref_seq::LongDNASeq)
+    start, term = SegmentFromCigar(SAM.cigar(rd))
+    lgt = term - start
+    r_pos = SAM.position(rd)
+    rd_seq = SAM.sequence(rd)
+
+    left_pad =  min( start, r_pos ) - 1
+    right_pad = max(0, min(length(rd_seq) - term, length(ref_seq)-9-(r_pos+lgt)) )
+
+    s1 = rd_seq[ (start-left_pad):(term+right_pad) ]
+    s2 = ref_seq[(r_pos - left_pad):(r_pos + lgt + right_pad)]
+
+    return HammingDistanceG4( s1, s2, (length(s1) - (lgt+1)) ÷ 3  )
 
 end
 
@@ -49,16 +89,17 @@ function assignV(rd::SAM.Record, refName2Seq)::Myread
     r_pos = SAM.position(rd)
     r_lgt = length(ref_seq)
 
-
-
+    #change from -11 to -6 
+    #satisfied the new reference for single cell 
     if ( (r_lgt - r_pos) - (length(tseq) - start  ) > -10  )
         return Myread(LongDNASeq("T"), "Useless", "Noname", "None", "None", false)
-	elseif ( term-start) / (r_lgt - r_pos) <= 0.5
+    end
+	if !real_score(rd, ref_seq)
 		return Myread(LongDNASeq("T"), "Useless", "Noname", "None", "None", false)
- 	else	
-    	return Myread( tseq[start:end], SAM.quality(String, rd)[start:end], refname, "None", "None", false)
-	end
-
+    end
+ 		
+    Myread( tseq[start:end], SAM.quality(String, rd)[start:end], refname, "None", "None", false)
+	
 end
 
 function assignJ(rd::SAM.Record, refName2Seq)::Myread
@@ -70,18 +111,16 @@ function assignJ(rd::SAM.Record, refName2Seq)::Myread
     r_pos = SAM.position(rd)
     r_lgt = length(ref_seq)
 
-    if length(tseq[1:start-1]) < 9
-        return Myread(
-            LongDNASeq("T"),
-            "Useless",
-            refname,
-            "None",
-            "None",
-            false
-            )
+    if length(tseq[1:start-1]) < 5
+        return Myread(LongDNASeq("T"), "Useless", "Noname", "None", "None", false)
     end
 
-    Myread( tseq[1:start-1] * ref_seq[r_pos:end],
+    if !real_score(rd, ref_seq)
+        return Myread(LongDNASeq("T"), "Useless", "Noname", "None", "None", false)
+    end
+
+    # Myread( tseq[1:start-1] * ref_seq[r_pos:end],
+    Myread(tseq[1: min(length(tseq), start + r_lgt)],
             SAM.quality(String, rd)[1:start-1] * repeat('G', r_lgt-r_pos),
             "None" ,
             refname,
@@ -384,9 +423,9 @@ function extend_left!(rd::Myread, kpool::Composition{DNAMer{L}}) where{L}
 
 end
 
-function depcature(reads::Array{Myread, 1}, the_kmer::Int64)
-    return reduce( merge,
-    ( composition(each(DNAMer{the_kmer}, ins.seq)) for ins in reads))
+function depcature(reads::Array{LongDNASeq, 1}, the_kmer::Int64)
+    return reduce( merge!,
+    ( composition(each(DNAMer{the_kmer}, ins)) for ins in reads))
 end
 
 function split4Multi(lgt::Int64, n::Int64)::Array{Int64, 1}
@@ -404,7 +443,25 @@ function split4Multi(lgt::Int64, n::Int64)::Array{Int64, 1}
     return holder
 end
 
-function bbk(reads::Array{Myread, 1}, the_kmer::Int64)
+function first_serveral(seq::LongDNASeq, x::Int64)
+	lgt = length(seq)
+	if lgt > x
+		return seq[1:x]
+	else
+		return seq[1:lgt]
+	end
+end
+
+function last_serveral(seq::LongDNASeq, x::Int64)
+	lgt = length(seq)
+	if lgt > x
+		return seq[lgt-x+1:lgt]
+	else
+		return seq[1:lgt]
+	end
+end
+
+function bbk(reads::Array{LongDNASeq, 1}, the_kmer::Int64)
 
     if isempty(reads)
         return composition(each(DNAMer{the_kmer}, LongDNASeq("")))
@@ -467,7 +524,7 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
 
     terms = keys(term_label)
     #terms_stand = Dict([ (key, most_common(counter(term_label[key]))[1][1]) for key in terms ])
-    kmer_pool = merge(bbk(Vpart, the_kmer), bbk(Jpart, the_kmer))
+    kmer_pool = merge(bbk([ last_serveral(x.seq, the_kmer+10) for x in Vpart], the_kmer), bbk([ first_serveral(x.seq, the_kmer+10) for x in Jpart], the_kmer))
     for alp in ['A', 'T', 'G', 'C']
         tmp = DNAMer(repeat('G', the_kmer))
         if kmer_pool[tmp]!=0

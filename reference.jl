@@ -1,6 +1,6 @@
-const ref_prefix = PROGRAM_FILE[1:end-12] * "resource"
+const ref_prefix = PROGRAM_FILE[1:end-7] * "resource"
 const bwa_path = "bwa"
-const samtools_path = "/home/chensy/anaconda3/bin/samtools"
+const samtools_path = "samtools"
 
 const refg = Dict(
 
