@@ -145,7 +145,7 @@ To run CATT stand-alone, some packages and softwares are needed:
   * XAM
   * DataStructures
   
-  `(pkg) add DataFrames CSV GZip BioAlignments BioSequences FASTX XAM DataStructures`
+`(pkg) add DataFrames CSV GZip BioAlignments BioSequences FASTX XAM DataStructures`
 
 * BWA
 * Samtools (recommand v1.7, some issuss may occurs in lower version)
@@ -156,10 +156,12 @@ conda install samtools bwa -c bioconda
 
 #### Configure
 
+In `reference.jl` file:
+
 * bwa_path: The executive file path of bwa, like `/usr/bin/bwa`. If the bwa is in the $PATH, this can be simply set as `bwa`
 * Samtools_path: The executive file path of samtools, If the samtools is in the $PATH, this can be simply set as `samtools`
 
-*  make `catt` executable and add it to global variable
+make `catt` executable and add it to global variable
 
    ```Shell
    #make it executable

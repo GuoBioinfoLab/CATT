@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from optparse import OptionParser
 import argparse
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     
     abp = os.path.abspath(sys.argv[0])[0:-5]
     args = CommandLineParser()
-    with open("./config.jl", "w") as handle:
+    with open("%s/config.jl" % abp, "w") as handle:
         handle.write("parsed_args = Dict(\n")
         for arg in vars(args):
             line = "{} => {},\n".format(convert(arg), convert((getattr(args, arg))))
