@@ -773,25 +773,6 @@ function proc(args)
         catt(Vpart, Jpart, tmp_name, parsed_args, parsed_args["output"][1])
         selfLog("Handle end")
 
-    #10X format
-    elseif parsed_args["tenX"]
-
-        tempoary, target =  split_10X(parsed_args["f1"], parsed_args["f2"]) 
-        push!(del_que, (tempoary, "rm -rf"))
-        push!(del_que, (target, "rm -rf"))
-        ll = ParrtenFile(target, "pear_total.fastq")
-        for (name, url) in ll
-            
-            vbam, jbam, tmp_name =  input_convert( parsed_args, url )
-            mainflow(parsed_args, vbam, jbam, tmp_name, parsed_args["output"][1])
-           
-            parsed_args["chain"] = "TRA"
-            vbam, jbam, tmp_name =   input_convert( parsed_args, url )
-            mainflow(parsed_args, vbam, jbam, tmp_name, parsed_args["output"][1])
-            parsed_args["chain"] = "TRB"
-
-        end
-
     else
 
         if !isempty(parsed_args["f2"])

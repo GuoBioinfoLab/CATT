@@ -22,7 +22,6 @@ def CommandLineParser():
     parser.add_argument("--bowsc",  default=12, type=int)
     parser.add_argument('--penality',default=1, type=int)
     parser.add_argument("--bam", action="store_true", dest='bam', default=False)
-    parser.add_argument("--tenX", action="store_true", dest="tenX", default=False)
     parser.add_argument("--species", default='hs', choices=['hs', 'ms', 'pig'])
     parser.add_argument('--proV', dest='proV', action='append', default=[], help="processed file pathV ")
     parser.add_argument('--proJ', dest='proJ', action='append', default=[], help="processed file pathJ ")
