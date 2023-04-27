@@ -3,14 +3,14 @@ using FASTX
 using XAM
 using BioSequences
 using DataStructures
+using Kmers
 
-@inline encoded_data_type(::Type{Mer{A,K}}) where {A,K} = UInt64
-@inline encoded_data_type(::Type{BigMer{A,K}}) where {A,K} = UInt128
-@inline encoded_data_type(x::AbstractMer) = encoded_data_type(typeof(x))
-@inline encoded_data(x::AbstractMer) = reinterpret(encoded_data_type(typeof(x)), x)
+# @inline encoded_data_type(::Type{Kmer{A,K}}) where {A,K} = UInt64
+# @inline encoded_data_type(x::AbstractMer) = encoded_data_type(typeof(x))
+# @inline encoded_data(x::AbstractMer) = reinterpret(encoded_data_type(typeof(x)), x)
 
 mutable struct Myread
-    seq::LongSequence{DNAAlphabet{4}}
+    seq::LongDNA
     qual::String
     vs::String
     js::String
@@ -32,15 +32,15 @@ function showAAseq( rd::Myread )
     return [ mytranslate(rd.seq[shift:lgt-(lgt-shift+1)%3]) for shift in 1:3 ]
 end
 
-function showAAseq( rd::T ) where T<:Union{String, LongDNASeq}
+function showAAseq( rd::T ) where T<:Union{String, LongDNA}
     lgt = length(rd)
     return [ mytranslate(rd[shift:lgt-(lgt-shift+1)%3]) for shift in 1:3 ]
 end
 
 function selBestMatchD(seq::String, TRBDs )::String
 
-    res = [ (score(pairalign(problem, LongDNASeq(seq), LongDNASeq(ref), score_model)), ref, name ) for (name, ref) in TRBDs ]
-    filter!( x -> x[1] + length(LongDNASeq(seq)) - length(x[2]) + 4 > 35 , res )
+    res = [ (score(pairalign(problem, LongDNA{4}(seq), LongDNA{4}(ref), score_model)), ref, name ) for (name, ref) in TRBDs ]
+    filter!( x -> x[1] + length(LongDNA{4}(seq)) - length(x[2]) + 4 > 35 , res )
     sort!(res, rev=true, by = x -> x[1])
 
     if length(res) > 0
@@ -51,7 +51,7 @@ function selBestMatchD(seq::String, TRBDs )::String
 
 end
 
-@inline function HammingDistance(s1::T, s2::T; skip::Int64=0)::Int64 where T<:Union{String, LongDNASeq}
+@inline function HammingDistance(s1::T, s2::T; skip::Int64=0)::Int64 where T<:Union{String, LongDNA}
     cnt::Int64 = 0
     for idx in (skip+1):length(s1)-skip
         if s1[idx] != s2[idx]
@@ -132,34 +132,34 @@ function flat2(arr)
     rst
 end
 
-function iterate_ff(it::String)::String
-    part = it[1:end-1]
-    [ part * chr for chr in ['A', 'T', 'G', 'C'] ]
-end
+# function iterate_ff(it::String)::String
+#     part = it[1:end-1]
+#     [ part * chr for chr in ['A', 'T', 'G', 'C'] ]
+# end
 
-function iterate_rv(it::String)::String
-    part = it[2:end]
-    [ chr * part for chr in ['A', 'T', 'G', 'C'] ]
-end
+# function iterate_rv(it::String)::String
+#     part = it[2:end]
+#     [ chr * part for chr in ['A', 'T', 'G', 'C'] ]
+# end
 
-#right
-function iterate_ff(it::Mer{DNAAlphabet{T},K}) where {T,K}
-    cc = encoded_data(it)
-    return [ Mer{DNAAlphabet{T},K}( cc<<2 | i) for i in 0:3]
-end
+# #right
+# function iterate_ff(it::Kmer{DNAAlphabet{T},K}) where {T,K}
+#     cc = encoded_data(it)
+#     return [ Mer{DNAAlphabet{T},K}( cc<<2 | i) for i in 0:3]
+# end
 
-function iterate_rv(it::Mer{DNAAlphabet{T},K}) where {T,K}
-    cc = encoded_data(it)
-    return [ Mer{DNAAlphabet{T},K}( cc>>2 | i<<((K-1)*2) ) for i in 0:3 ]
-end
+# function iterate_rv(it::Kmer{DNAAlphabet{T},K}) where {T,K}
+#     cc = encoded_data(it)
+#     return [ Mer{DNAAlphabet{T},K}( cc>>2 | i<<((K-1)*2) ) for i in 0:3 ]
+# end
 
 function mytranslate(orgseq::String)::String
     lgt = length(orgseq)
-    seq = LongDNASeq(orgseq)
+    seq = LongDNA(orgseq)
     String([ AAcode[(seq[j],seq[j+1],seq[j+2])] for j in 1:3:lgt ])
 end
 
-function mytranslate(seq::BioSequence{DNAAlphabet{4}})::String
+function mytranslate(seq::LongDNA)::String
     lgt = length(seq)
     String([ AAcode[(seq[j],seq[j+1],seq[j+2])] for j in 1:3:lgt ])
 end
@@ -361,7 +361,7 @@ function finder!( rd::Myread, cmotif::Regex, fmotif::Regex, coffset::Int64, foff
             #if group_len>0
             rd.able = rd.able || (statu_code > 0)
             if statu_code == 3
-                    rd.cdr3 = convert(String, rd.seq[group_range .+ (shift-1)])
+                    rd.cdr3 = String(rd.seq[group_range .+ (shift-1)])
                     rd.qual = rd.qual[group_range .+ (shift-1)]
                 break
             end
@@ -379,7 +379,7 @@ function finder!( rds::Array{Myread, 1}, cmotif::Regex, fmotif::Regex, coffset::
             #if group_len>0
             rd.able = rd.able || (statu_code > 0)
             if statu_code == 3
-                    rd.cdr3 = convert(String, rd.seq[group_range .+ (shift-1)])
+                    rd.cdr3 = String(rd.seq[group_range .+ (shift-1)])
                     rd.qual = rd.qual[group_range .+ (shift-1)]
                 break
             end
@@ -392,11 +392,6 @@ struct SeqIns
     seq::String
     qual::String
 end
-
-
-# function pairRL( leaf, root, upper)::Bool
-#     return HammingDistanceG3( leaf[1].seq, root[1].seq, upper, skip=3 )
-# end
 
 function linkRLG(leaf::Tuple{SeqIns, Int64}, roots::Array{Tuple{SeqIns, Int64}, 1}, uplimit::Array{Array{Float64, 1},1})::Tuple{Int64, Int64}
 

@@ -134,7 +134,6 @@ git clone https://github.com/GuoBioinfoLab/CATT.git
 To run CATT stand-alone, some packages and softwares are needed:
 
 * Python >= 3.7 (make sure the path is /usr/bin/python, or change the line 1 in catt)
-  * argparse
 * Julia >= 1.3 (1.6.3 was used for devleopment)
   * DataFrames
   * CSV
@@ -144,15 +143,15 @@ To run CATT stand-alone, some packages and softwares are needed:
   * FASTX
   * XAM
   * DataStructures
-  
-`(pkg) add DataFrames CSV GZip BioAlignments BioSequences FASTX XAM DataStructures`
-
 * BWA
-* Samtools (recommand v1.7, some issuss may occurs in lower version)
+* Samtools (recommand > v1.7, some issuss may occurs in lower version)
+
+We recommand install the packages by conda like:
 ```Shell
-#recommand install using conda 
-conda install samtools bwa -c bioconda
-```
+# create conda envrioment and install tools
+conda install python julia samtools bwa -c bioconda -c conda-forge
+# install julia packages
+julia -e 'using Pkg; Pkg.add(["DataFrames", "CSV", "GZip", "BioAlignments", "BioSequences", "FASTX",  "XAM", "DataStructures", "Kmers"])'
 
 #### Configure
 
@@ -163,12 +162,12 @@ In `reference.jl` file:
 
 make `catt` executable and add it to global variable
 
-   ```Shell
-   #make it executable
-   chmod u+x catt
-   #add catt to ~/.bashrc
-   export PATH="/path/to/catt:$PATH"
-   ```
+```Shell
+#make it executable
+chmod u+x catt
+#add catt to ~/.bashrc
+export PATH="/path/to/catt:$PATH"
+```
 
 ### Test sample
 

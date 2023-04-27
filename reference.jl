@@ -1,6 +1,6 @@
 const ref_prefix = PROGRAM_FILE[1:end-7] * "resource"
 const bwa_path = "bwa"
-const samtools_path = "samtools"
+const samtools_path = "/Users/kroaity/Documents/bin/samtools"
 
 const refg = Dict(
 

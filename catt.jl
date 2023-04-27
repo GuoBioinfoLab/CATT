@@ -6,6 +6,7 @@ CATT julia version:
 =#
 
 using Distributed
+using BioSequences
 using Dates
 using DataStructures
 using DataFrames
@@ -14,6 +15,7 @@ using GZip
 using Base.Threads
 using Random
 using UUIDs
+using Kmers
 
 const PATH2CATT = PROGRAM_FILE[1:end-8]
 
@@ -40,9 +42,9 @@ function map2align(input_file::String, ref::String, fasta_flag::Cmd, prefix::Str
     # When add merege IG and TR gene together, strict mapping is need to ensure there wound't be mismapping which may cause high error rate in SAM
     run(pipeline(`$bwa_path mem -v 0 -SP -t $threads -k 10 -A 1 -B 2 -L 0 -T $score $ref $input_file`, 
         stdout=pipeline(
-            `$samtools_path sort -O SAM -t AS`,
+            `$samtools_path sort -O SAM -t AS -l 0 -@ $threads`,
             `$samtools_path view -F 2308`,
-            `tac`,
+            `tail -r`,
             `awk -F ' ' '!a[$1]++'`,
             `$samtools_path view -h -T $ref`,
             "$prefix.sam"
@@ -64,7 +66,7 @@ end
 end
 
 
-function real_score(rd::SAM.Record, ref_seq::LongDNASeq)
+function real_score(rd::SAM.Record, ref_seq::LongDNA{4})
     start, term = SegmentFromCigar(SAM.cigar(rd))
     lgt = term - start
     r_pos = SAM.position(rd)
@@ -85,17 +87,17 @@ function assignV(rd::SAM.Record, refName2Seq)::Myread
     start, term = SegmentFromCigar(SAM.cigar(rd))
     refname = SAM.refname(rd)
     tseq = SAM.sequence(rd)
-    ref_seq = LongDNASeq(refName2Seq[ refname ])
+    ref_seq = LongDNA{4}(refName2Seq[ refname ])
     r_pos = SAM.position(rd)
     r_lgt = length(ref_seq)
 
     #change from -11 to -6 
     #satisfied the new reference for single cell 
     if ( (r_lgt - r_pos) - (length(tseq) - start  ) > -10  )
-        return Myread(LongDNASeq("T"), "Useless", "Noname", "None", "None", false)
+        return Myread(dna"T", "Useless", "Noname", "None", "None", false)
     end
 	if !real_score(rd, ref_seq)
-		return Myread(LongDNASeq("T"), "Useless", "Noname", "None", "None", false)
+		return Myread(dna"T", "Useless", "Noname", "None", "None", false)
     end
  		
     Myread( tseq[start:end], SAM.quality(String, rd)[start:end], refname, "None", "None", false)
@@ -107,16 +109,16 @@ function assignJ(rd::SAM.Record, refName2Seq)::Myread
     start, term = SegmentFromCigar(SAM.cigar(rd))
     refname = SAM.refname(rd)
     tseq = SAM.sequence(rd)
-    ref_seq = LongDNASeq(refName2Seq[ refname ])
+    ref_seq = LongDNA{4}(refName2Seq[ refname ])
     r_pos = SAM.position(rd)
     r_lgt = length(ref_seq)
 
     if length(tseq[1:start-1]) < 5
-        return Myread(LongDNASeq("T"), "Useless", "Noname", "None", "None", false)
+        return Myread(dna"T", "Useless", "Noname", "None", "None", false)
     end
 
     if !real_score(rd, ref_seq)
-        return Myread(LongDNASeq("T"), "Useless", "Noname", "None", "None", false)
+        return Myread(dna"T", "Useless", "Noname", "None", "None", false)
     end
 
     # Myread( tseq[1:start-1] * ref_seq[r_pos:end],
@@ -212,8 +214,8 @@ function read_alignrs(args, vbam, jbam, tmp_name)
     for idx in 1:length(vbam)
 
        
-        kmer_length = @spawn get_kmer_fromsam(tmp_name, vbam[idx], args)
-        error_rate = @spawn get_err_fromsam(tmp_name, vbam[idx])
+        kmer_length = get_kmer_fromsam(tmp_name, vbam[idx], args)
+        error_rate = get_err_fromsam(tmp_name, vbam[idx])
 
      
         @sync begin
@@ -299,7 +301,7 @@ function read_alignrs(args, vbam, jbam, tmp_name)
                             rfp1, rfp2 = SAM.refname(p1), SAM.refname(p2)
                             final = SAM.sequence(p1)[s:t]
                             if ! (DNA_N in final)
-                                tmp = Myread(LongDNASeq(final), SAM.quality(String, p1)[s:t], rfp1, rfp2, "None", false)
+                                tmp = Myread(LongDNA{4}(final), SAM.quality(String, p1)[s:t], rfp1, rfp2, "None", false)
 								finder!(tmp, cmotif[threadid()], fmotif[threadid()], coffset[threadid()], foffset[threadid()], innerC[threadid()], innerF[threadid()])
 								if tmp.able
                                     push!(Vpart, tmp)
@@ -339,33 +341,30 @@ end
 ratio(x::Int, y::Int)::Bool = x>y ? (x <= 10*y) : (10*x>= y)
 const Int2Alpha = ['A','C','G','T']
 
-function fillpo_right!(potential, seg, kpool)
-    for (idx, fd) in enumerate(iterate_ff(seg))
+function fillpo_right!(potential::Array{Tuple{DNAKmer{L},Int64,Int64},1}, seg::DNAKmer{L}, kpool::DefaultDict{ DNAKmer{L}, Int64, Int64 }) where {L}
+    for (idx, fd) in enumerate( bw_neighbors(seg) )
         potential[idx] = (fd, kpool[fd], idx)
     end
 end
 
-function extend_right!(rd::Myread, kpool::Composition{DNAMer{L}}) where{L}
+function extend_right!(rd::Myread, kpool::DefaultDict{ DNAKmer{L}, Int64, Int64 }) where {L}
 
     #const kmer = args["kmer"]
-    seg = DNAMer{L}(rd.seq[end-L+1:end])
+    seg = DNAKmer{L}(rd.seq[end-L+1:end])
     cur::Int64 = kpool[seg]
     res_list = Array{Char,1}(undef, 150)
-    potential = Array{Tuple{DNAMer{L},Int64,Int64},1}(undef, 4)
+    potential = Array{Tuple{DNAKmer{L},Int64,Int64},1}(undef, 4)
     idx::Int64 = 1
     flag::Bool = true
     while ( idx < 151 - length(rd.seq) && flag )
         fillpo_right!(potential, seg, kpool)
         sort!(potential, rev=true, by = x -> x[2])
-        #Change here 21.6.2019
-        # if potential[1][2] == 0 || !ratio(potential[1][2], cur)
-        #     break
-        # end
 
         flag = false
         for ccd in 1:4
             if potential[ccd][2] == 0 
-                break
+                #break
+                continue
             elseif ratio(potential[ccd][2], cur) && potential[ccd][1] != seg
                 seg, cur = potential[ccd][1], potential[ccd][2]
                 res_list[idx] = Int2Alpha[potential[ccd][3]]
@@ -376,26 +375,26 @@ function extend_right!(rd::Myread, kpool::Composition{DNAMer{L}}) where{L}
         end
        
     end
-    rd.seq *= LongDNASeq(res_list[1:idx-1])
+    rd.seq *= LongDNA{4}(res_list[1:idx-1])
     rd.qual *= repeat('G', idx-1)
     nothing
 
 end
 
-function fillpo_left!(potential, seg, kpool)
-    for (idx, fd) in enumerate(iterate_rv(seg))
+function fillpo_left!(potential::Array{Tuple{DNAKmer{L},Int64,Int64},1}, seg::DNAKmer{L}, kpool::DefaultDict{ DNAKmer{L}, Int64, Int64 }) where {L}
+    for (idx, fd) in enumerate( fw_neighbors(seg) )
         potential[idx] = (fd, kpool[fd], idx)
     end
     nothing
 end
 
-function extend_left!(rd::Myread, kpool::Composition{DNAMer{L}}) where{L}
+function extend_left!(rd::Myread, kpool::DefaultDict{ DNAKmer{L}, Int64, Int64 }) where{L}
 
     #const kmer = args["kmer"]
-    seg = DNAMer{L}(rd.seq[1:L])
+    seg = DNAKmer{L}(rd.seq[1:L])
     cur::Int64 = kpool[seg]
     res_list = Array{Char,1}(undef, 150)
-    potential = Array{Tuple{DNAMer{L},Int64,Int64},1}(undef, 4)
+    potential = Array{Tuple{DNAKmer{L},Int64,Int64},1}(undef, 4)
     idx::Int64 = 1
     flag::Bool = true
     while ( idx < 151 - length(rd.seq) && flag )
@@ -406,7 +405,8 @@ function extend_left!(rd::Myread, kpool::Composition{DNAMer{L}}) where{L}
         for ccd in 1:4
 
             if potential[ccd][2] == 0 
-                break
+                #break
+                continue
             elseif ratio(potential[ccd][2], cur) && potential[ccd][1] != seg
                 seg, cur = potential[ccd][1], potential[ccd][2]
                 res_list[idx] = Int2Alpha[potential[ccd][3]]
@@ -417,15 +417,32 @@ function extend_left!(rd::Myread, kpool::Composition{DNAMer{L}}) where{L}
 
         end
     end
-    rd.seq = reverse(LongDNASeq(res_list[1:idx-1])) * rd.seq
+    rd.seq = reverse(LongDNA{4}(res_list[1:idx-1])) * rd.seq
     rd.qual = repeat('G', idx-1) * rd.qual
     nothing
 
 end
 
-function depcature(reads::Array{LongDNASeq, 1}, the_kmer::Int64)
+function convert2Dict(ins::EveryKmer{DNAKmer{T, 1}, LongSequence{DNAAlphabet{4}}})::Dict{ DNAKmer{T}, Int64} where{T}
+    res = Dict{ DNAKmer{T}, Int64 }()
+    for item in ins
+        res[ item[2] ] = item[1]
+    end
+    return res
+end
+
+function convert2Dict(ins::EveryKmer{DNAKmer{T}, LongDNA})::Dict{ DNAKmer{T}, Int64} where{T}
+    res = Dict{ DNAKmer{T}, Int64 }()
+    for item in ins
+        res[ item[2] ] = item[1]
+    end
+    return res
+end
+
+function depcature(reads::Array{LongDNA{4}, 1}, the_kmer::Int64)
     return reduce( merge!,
-    ( composition(each(DNAMer{the_kmer}, ins)) for ins in reads))
+        ( convert2Dict(EveryKmer{DNAKmer{the_kmer}}(ins)) for ins in reads )  
+    )
 end
 
 function split4Multi(lgt::Int64, n::Int64)::Array{Int64, 1}
@@ -443,7 +460,7 @@ function split4Multi(lgt::Int64, n::Int64)::Array{Int64, 1}
     return holder
 end
 
-function first_serveral(seq::LongDNASeq, x::Int64)
+function first_serveral(seq::LongDNA{4}, x::Int64)
 	lgt = length(seq)
 	if lgt > x
 		return seq[1:x]
@@ -452,7 +469,7 @@ function first_serveral(seq::LongDNASeq, x::Int64)
 	end
 end
 
-function last_serveral(seq::LongDNASeq, x::Int64)
+function last_serveral(seq::LongDNA{4}, x::Int64)
 	lgt = length(seq)
 	if lgt > x
 		return seq[lgt-x+1:lgt]
@@ -461,10 +478,10 @@ function last_serveral(seq::LongDNASeq, x::Int64)
 	end
 end
 
-function bbk(reads::Array{LongDNASeq, 1}, the_kmer::Int64)
+function bbk(reads::Array{LongDNA{4}, 1}, the_kmer::Int64) :: Dict{ DNAKmer{the_kmer}, Int64 }
 
     if isempty(reads)
-        return composition(each(DNAMer{the_kmer}, LongDNASeq("")))
+        return EveryKmer{DNAKmer{the_kmer}}(dna"")
     end
 
     if length(reads) < nthreads() + 1
@@ -472,7 +489,7 @@ function bbk(reads::Array{LongDNASeq, 1}, the_kmer::Int64)
     end
 
     sp = split4Multi(length(reads), nthreads())
-    holder = Array{Composition{DNAMer{the_kmer}}, 1}(undef ,nthreads());
+    holder = Array{Dict{ DNAKmer{the_kmer}, Int64 }, 1}(undef ,nthreads());
     Threads.@threads for idx in 1:nthreads()
         holder[idx] = depcature( reads[ sp[idx]:sp[idx+1]-1 ], the_kmer)
     end
@@ -507,7 +524,7 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
 	selfLog("There are $( length(pV)+length(pJ) ) reads left")
 
     term_label = []
-    terms_stand = Dict{LongDNASeq, String}()
+    terms_stand = Dict{LongDNA{4}, String}()
     #aha_label -> [ (leader kmer, V/J region) ]
     aha_label = [ [ (rd.seq[1:args["kmer"]], rd.vs) for rd in Vpart] ; [ (rd.seq[end-args["kmer"]+1:end], rd.js) for rd in Jpart] ]
     sort!(aha_label, by = x -> x[1])
@@ -524,12 +541,10 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
 
     terms = keys(term_label)
     #terms_stand = Dict([ (key, most_common(counter(term_label[key]))[1][1]) for key in terms ])
-    kmer_pool = merge(bbk([ last_serveral(x.seq, the_kmer+10) for x in Vpart], the_kmer), bbk([ first_serveral(x.seq, the_kmer+10) for x in Jpart], the_kmer))
+    kmer_pool =  DefaultDict(0, merge(bbk([ last_serveral(x.seq, the_kmer+10) for x in Vpart], the_kmer), bbk([ first_serveral(x.seq, the_kmer+10) for x in Jpart], the_kmer)) )
     for alp in ['A', 'T', 'G', 'C']
-        tmp = DNAMer(repeat('G', the_kmer))
-        if kmer_pool[tmp]!=0
-            kmer_pool.counts[tmp] = 0
-        end
+        tmp = DNAKmer(repeat('G', the_kmer))
+        kmer_pool[tmp] = 0
     end
 
     selfLog("Extending")
@@ -612,10 +627,6 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
     conf = Set()
     seq2seq = Dict{String, String}()
 
-    if args["sc"]
-        selfLog("Using single cell mode")
-    end
-
     for (lgt, val) in gps
         cf, c2c = nbsorb(lgt, val, the_ERR, args["sc"])
         union!(conf, cf)
@@ -630,7 +641,7 @@ function catt(Vpart, Jpart, tmp_name, args, outfix)
 
     ## DELETE !
     filter!( x-> x.cdr3 in conf || x.cdr3 in need_trans, resRd)
-    formoter = counter( (it.vs, translate(LongDNASeq(it.cdr3 in need_trans ? seq2seq[it.cdr3] : it.cdr3)), it.js, it.cdr3) for it in resRd )
+    formoter = counter( (it.vs, translate(LongDNA{4}(it.cdr3 in need_trans ? seq2seq[it.cdr3] : it.cdr3)), it.js, it.cdr3) for it in resRd )
 
     if args["region"] == "CDR1" || args["region"] == "CDR2"
         filter!(formoter) do (key, val)
@@ -683,57 +694,6 @@ function ParrtenFile(folder_path, reg)
     return [ (name, "$(folder_path)$(name)") for name in ll ]
 end
 
-function split_10X(f1, f2)
-    tempoary = "AAAAA"
-    sampleId = "BBBBBB"
-    mkdir("$tempoary")
-    mkdir("$(sampleId)_split")
-
-    if split(f1, '.')[end] == "gz"
-        reads1 = FASTQ.Reader(GZip.open(f1))
-        reads2 = FASTQ.Reader(GZip.open(f2))
-    else
-        reads1 = FASTQ.Reader(f1)
-        reads2 = FASTQ.Reader(f2)
-    end
-
-    rd1 = FASTQ.Record()
-    rd2 = FASTQ.Record()
-
-    while !eof(reads1)
-
-        read!(reads1, rd1)
-        read!(reads2, rd2)
-    
-        barcode = FASTQ.sequence(rd1)[1:16]
-        wt1 = FASTQ.Writer(open("$tempoary/$(barcode)_1.fastq","a"))
-        wt2 = FASTQ.Writer(open("$tempoary/$(barcode)_2.fastq","a"))
-        write(wt1, rd1)
-        write(wt2, rd2)
-    
-        close(wt1)
-        close(wt2)
-    
-    end
-
-    barcodes = Set([ split(x, '_')[1] for x in readdir("$tempoary") ])
-    sz = [ (barcode, filesize("$tempoary/$(barcode)_1.fastq")) for barcode in barcodes ]
-    sort!( sz, rev=true, by = x -> x[2])
-
-    for (barcode, ssize) in sz[1: (length(sz) ÷ 100) ]
-        run(`umi_tools extract -p CCCCCCCCCCCCCCCCNNNNNNNNNN -I $tempoary/$(barcode)_1.fastq -S $tempoary/$(barcode)_exd_1.fastq`)
-        #run(`umi_tools extract -p CCCCCCCCCCCCCCCCNNNNNNNNNN -I tempoary/$(barcode)_2.fastq -S tempoary/$(barcode)_exd_2.fastq`)
-        run(`cutadapt --quiet -u 13 -o $(sampleId)_split/$(barcode)_1.fastq $tempoary/$(barcode)_exd_1.fastq`)
-        #run(`cutadapt -u 13 -o $(sampleId)_split/$(barcode)_2.fastq tempoary/$(barcode)_exd_2.fastq`)
-        mv("$tempoary/$(barcode)_2.fastq", "$(sampleId)_split/$(barcode)_2.fastq")
-        run(`pear -j 16 -f $(sampleId)_split/$(barcode)_1.fastq -r $(sampleId)_split/$(barcode)_2.fastq -o $(sampleId)_split/$(barcode)_pear`)
-        run(pipeline(`cat $(sampleId)_split/$(barcode)_pear.assembled.fastq $(sampleId)_split/$(barcode)_pear.unassembled.reverse.fastq $(sampleId)_split/$(barcode)_pear.unassembled.forward.fastq`,  stdout="$(sampleId)_split/$(barcode)_pear_total.fastq"))
-    end
-
-    return tempoary, "$(sampleId)_split"
-
-end
-
 function mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
 
     Vpart, Jpart, tmp_name = read_alignrs(parsed_args, vbam, jbam, tmp_name)
@@ -780,20 +740,10 @@ function proc(args)
 
                 selfLog("Handing Paired-end sample: $(f1)")
 
-                vbam, jbam, tmp_name =   input_convert(parsed_args, f1, input_file2 = f2)
+                vbam, jbam, tmp_name =  input_convert(parsed_args, f1, input_file2 = f2)
                 mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
 
                 selfLog("Handle end")
-
-
-                if parsed_args["sc"]
-                    if parsed_args["chain"] == "TRB"
-                        parsed_args["chain"] = "TRA"
-                        vbam, jbam, tmp_name =   input_convert( parsed_args, f1, input_file2 = f2)
-                        mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
-                        parsed_args["chain"] = "TRB"
-                    end
-                end
 
             end
         else
@@ -816,17 +766,7 @@ function proc(args)
 
                 vbam, jbam, tmp_name =   input_convert( parsed_args, inp )
                 mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
-
                 selfLog("Handle end")
-
-                if parsed_args["sc"]
-                    if parsed_args["chain"] == "TRB"
-                        parsed_args["chain"] = "TRA"
-                        vbam, jbam, tmp_name =   input_convert( parsed_args, inp )
-                        mainflow(parsed_args, vbam, jbam, tmp_name, outfix)
-                        parsed_args["chain"] = "TRB"
-                    end
-                end
             end
         end
     
