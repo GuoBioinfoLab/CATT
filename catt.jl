@@ -66,7 +66,7 @@ end
 end
 
 
-function real_score(rd::SAM.Record, ref_seq::LongDNA{4})
+function real_score(rd::SAM.Record, ref_seq::LongDNA{4}, allowance::Int = 0)
     start, term = SegmentFromCigar(SAM.cigar(rd))
     lgt = term - start
     r_pos = SAM.position(rd)
@@ -78,9 +78,10 @@ function real_score(rd::SAM.Record, ref_seq::LongDNA{4})
     s1 = rd_seq[ (start-left_pad):(term+right_pad) ]
     s2 = ref_seq[(r_pos - left_pad):(r_pos + lgt + right_pad)]
 
-    return HammingDistanceG4( s1, s2, (length(s1) - (lgt+1)) ÷ 3  )
+    #At the most 1/3 of the extra sequence could be error.
+    return HammingDistanceG4( s1, s2, (length(s1) - (lgt+1)) ÷ 3 + allowance )
 
-end
+end 
 
 function assignV(rd::SAM.Record, refName2Seq)::Myread
 
@@ -96,7 +97,7 @@ function assignV(rd::SAM.Record, refName2Seq)::Myread
     if ( (r_lgt - r_pos) - (length(tseq) - start  ) > -10  )
         return Myread(dna"T", "Useless", "Noname", "None", "None", false)
     end
-	if !real_score(rd, ref_seq)
+	if !real_score(rd, ref_seq, 3)
 		return Myread(dna"T", "Useless", "Noname", "None", "None", false)
     end
  		
@@ -117,11 +118,10 @@ function assignJ(rd::SAM.Record, refName2Seq)::Myread
         return Myread(dna"T", "Useless", "Noname", "None", "None", false)
     end
 
-    if !real_score(rd, ref_seq)
+    if !real_score(rd, ref_seq, 9)
         return Myread(dna"T", "Useless", "Noname", "None", "None", false)
     end
 
-    # Myread( tseq[1:start-1] * ref_seq[r_pos:end],
     Myread(tseq[1: min(length(tseq), start + r_lgt)],
             SAM.quality(String, rd)[1:start-1] * repeat('G', r_lgt-r_pos),
             "None" ,

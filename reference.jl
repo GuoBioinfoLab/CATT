@@ -5,6 +5,20 @@ const samtools_path = "/Users/kroaity/Documents/bin/samtools"
 const refg = Dict(
 
     "hs" => Dict(
+
+        "TRA" => Dict(
+            "CDR3" => Dict(
+                "vregion" => "$ref_prefix/TR/hs/TRA/TRAV-gai3-DNA.fa",
+                "jregion" => "$ref_prefix/TR/hs/TRA/TRAJ-gai2-DNA.fa",
+                "cmotif" => "[EHILMSTV]{1}Y[FILY]{1}C[AGILV]{1}",
+                "fmotif" => "(LA|YI|FI|II|LY|LM|PT|TI|LV|ST|VT|LT|LI|LQ|MR|VI|FV|FQ|LF|LL|FE|FT|LS|LN|FY)F((ARG)|(G[A-Z]{1}G))",
+                "coffset" => 3,
+                "foffset" => 0,
+                "innerC" => "place_holder",
+                "innerF" => "place_holder",
+            )
+        ),
+
         "TRB" => Dict(
             "CDR3" => Dict(
                 "vregion" => "$ref_prefix/TR/hs/TRB/TRBV-gai6-DNA.fa",
@@ -20,60 +34,37 @@ const refg = Dict(
                     ("TRBD2*01", "gggactagcggggggg"),
                     ("TRBD2*02", "gggactagcgggaggg")
                 ]
-            ),
-            "CDR1" => Dict(
-                "vregion" => "$ref_prefix/TR/hs/TRB/TRBV-CDR1-front.fa",
-                "jregion" => "$ref_prefix/TR/hs/TRB/TRBV-CDR1-back.fa",
-                "cmotif" => "(HQT|KPI|SQT|YPI|VPI|QPI|API|TPK|DSI|SPI|NPI|EPI|RSL|QVD|TPE|DPS|EQH|TQD|DPI|TVE|AQD|SSQ|SPK|SPM|PQN|VQD|SQN|EQN|SPR)C",
-                "fmotif" => "(IF|MY|MF|VF|VH|FY|LY|VY|LL|MS|VC|LS|LF|VS)|W",
-                "coffset" => 3,
-                "foffset" => 2,
-                "innerC" => "place_holder",
-                "innerF" => "place_holder",
-            ),
-            "CDR2" => Dict(
-                "vregion" => "$ref_prefix/TR/hs/TRB/TRBV-CDR2-front.fa",
-                "jregion" => "$ref_prefix/TR/hs/TRB/TRBV-CDR2-back.fa",
-                "cmotif" => "LLW|LTY|LIR|LVS|LNY|IYY|IYF|LIS|LVY|LIH|LFE|LLH|LVQ|LFY|MFV|FIY|LIY|VYY|LIQ|IHY|IFQ|MAT|LAY|IFE|MAA|MVY|LSY|MFS|FIS|LFH|IAT",
-                "fmotif" => "NNE|INK|IDE|AVD|QIS|RAK|RNR|FQK|IIN|LEK|KEK|SDK|TAK|NGR|LDD|TGK|QDE|SIN|QDK|RDK|RQR|TDK|RNK|ADD|RGR|TEN|IEK|IQK|FDE|IDD|PDK|LDK|RSE|SEK|TDQ|VEN|IDN|TYE|TEK|TNK|LQE|VDD",
-                "innerC" => "place_holder",
-                "innerF" => "place_holder",
-                "coffset" => 0,
-                "foffset" => 1,
             )
         ),
 
-        "TRA" => Dict(
-
-            "CDR1" => Dict(
-                "vregion" => "$ref_prefix/TR/hs/TRA/TRAV-CDR1-front.fa",
-                "jregion" => "$ref_prefix/TR/hs/TRA/TRAJ-CDR1-front.fa",
-                "cmotif" => "C(TSS|SYK|TYD|TYS|NHS|SFT|NSS|NFS|SSS|TYT|VYE|AYE|SYE|SYT|SYS|TYQ|SCT|SFP|NYS|AYS|DYT|SHN|NYT)",
-                "fmotif" => "(IQ|LH|FF|WL|FM|FP|LQ|VH|IH|LR|VY|LY|LS|FL|LL|FI|FH|LF|IT)|W",
-                "coffset" => -1,
-                "foffset" => 2,
-                "innerC" => "place_holder",
-                "innerF" => "place_holder",
-            ),
-            "CDR2" => Dict(
-                "vregion" => "$ref_prefix/TR/hs/TRA/TRAV-CDR2-front.fa",
-                "jregion" => "$ref_prefix/TR/hs/TRA/TRAV-CDR2-back.fa",
-                "cmotif" => "LTY|LIR|LTI|LMM|LIL|LIA|IIH|LIS|LFM|LVT|LQR|IID|LTL|VIH|LFY|LLL|LIY|LIQ|VIR|IIQ|IMF|LMS|LSY|LMI|LLR|IMS|LFT|LMY|HLK|LLS|LVK|LLK|LFV",
-                "fmotif" => "ETN|KKQ|KQE|KGH|KSH|KHS|QTS|KEK|KRH|EIS|GRN|KKD|ESI|KQD|KQN|KKS|MRR|KGI|KED|QGI|ATE|KSN|EDG|EEK|KRK|NSK|TSN|KQK|GSN|KKH|EET|TDS|KKK|KKE|VTN|QGD|NED|KGS|KKL|SQQ|VNN|RQG",
-                "innerC" => "place_holder",
-                "innerF" => "place_holder",
-                "coffset" => 0,
-                "foffset" => 1,
-            ),
+        "TRG" => Dict(
             "CDR3" => Dict(
-                "vregion" => "$ref_prefix/TR/hs/TRA/TRAV-gai3-DNA.fa",
-                "jregion" => "$ref_prefix/TR/hs/TRA/TRAJ-gai2-DNA.fa",
-				"cmotif" => "[EHILMSTV]{1}Y[FILY]{1}C[AGILV]{1}",
-                "fmotif" => "(LA|YI|FI|II|LY|LM|PT|TI|LV|ST|VT|LT|LI|LQ|MR|VI|FV|FQ|LF|LL|FE|FT|LS|LN|FY)F((ARG)|(G[A-Z]{1}G))",
-                "coffset" => 3,
-                "foffset" => 0,
-                "innerC" => "place_holder",
-                "innerF" => "place_holder",
+                "vregion" => "$ref_prefix/TR/hs/TRGV.fa",
+                "jregion" => "$ref_prefix/TR/hs/TRGJ.fa",
+                "cmotif" => "(YY|YH)C(A|T)",
+                "fmotif" => "([LV]{1}FG[SP]{1}G)|(IFAEG)|(TFAKG)",
+                "coffset" => 2,
+                "foffset" => 1,
+                "innerC" => "(CAT|CAW|CTT|CAL|CAC|CAA)",
+                "innerF" => "(KLF)|(KVF)|(KIF)|(KTF)",
+            )
+        ),
+
+        "TRD" => Dict(
+            "CDR3" => Dict(
+                "vregion" => "$ref_prefix/TR/hs/TRDV.fa",
+                "jregion" => "$ref_prefix/TR/hs/TRDJ.fa",
+                "cmotif"  => "(YF|YL|YY)C(A|S)",
+                "fmotif"  => "[I|F]FG[K|T]G",
+                "coffset" => 2,
+                "foffset" => 1,
+                "innerC"  => "place_holder",
+                "innerF"  => "place_holder",
+                "Dregion" => [
+                    ("TRDD1*01", "gaaatagt"),
+                    ("TRDD2*01", "ccttcctac"),
+                    ("TRDD3*01", "actgggggatacg")
+                ]
             )
         ),
 
@@ -85,14 +76,10 @@ const refg = Dict(
                 "fmotif"  => "[VLHYPIS]{1}WG[QR]{1}G",
                 "coffset" => 3,
                 "foffset" => 1,
-                "innerC" => "ASDASDASDASDADS",
-                "innerF" => "ASDASDASDASDASD",
+                "innerC" => "place_holder",
+                "innerF" => "place_holder",
             ),
         ),
-
-        # "IGK" => Dict(
-
-        # )
     ),
 
     "ms" => Dict(
@@ -134,12 +121,6 @@ const refg = Dict(
                     ("TRBD3*01", "ggagctatggggggggg")
                 ]
             )
-        ),
-        # "TRA" => Dict(
-        #     "CDR3" => Dict(
-        #         "vregion" => "ASD",
-        #     )
-        # )
+        )
     )
-
 )

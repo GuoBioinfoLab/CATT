@@ -1,10 +1,14 @@
-#!/usr/bin/python3
+#!python3
 import argparse
 import os
 import sys
 
 def CommandLineParser():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog="CATT",
+        description="What the program does",
+        epilog='Text at the bottom of help'
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-f', '--file', action='append', default=[], help="Input file path")
     group.add_argument("--f1", action='append', default=[], help='Input file path with #1 mates')
@@ -44,6 +48,12 @@ if __name__ == '__main__':
     
     abp = os.path.abspath(sys.argv[0])[0:-5]
     args = CommandLineParser()
+
+    #Index check
+    if not os.path.exists("./resource/TR/hs/%sV.fa.bwt" % getattr(args, 'chain')):
+        os.system("bwa index ./resource/TR/hs/%sV.fa" % getattr(args, 'chain'))
+        os.system("bwa index ./resource/TR/hs/%sJ.fa" % getattr(args, 'chain'))
+
     with open("%s/config.jl" % abp, "w") as handle:
         handle.write("parsed_args = Dict(\n")
         for arg in vars(args):

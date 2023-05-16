@@ -10,27 +10,25 @@
 
 
 
-CATT is an ultra-sensitive and accurate tool for characterizing **T cell receptor sequence** in bulk and single cell TCR-Seq and RNA-Seq data. The tool can be found in:
+**CATT**(**C**har**A**cterzing **T**CR reper**t**oires) is an ultra-sensitive and accurate tool for characterizing **T cell receptor sequence** in bulk and single cell TCR-Seq and RNA-Seq data. 
+
+CATT employs a completely data-driven algorithm that is self-adaptive to input data without requiring additional parameters. This enables CATT to efficiently and accurately extract T cell CDR3 sequences from most types of TCR-containing raw sequencing data, including extremely short reads.
+
+The tool can be found in:
 
 - HomePage: [http://bioinfo.life.hust.edu.cn/CATT](http://bioinfo.life.hust.edu.cn/CATT/Homepage.html)
 - Github: [https://github.com/GuoBioinfoLab/CATT](https://github.com/GuoBioinfoLab/CATT)
 - For detials please see our [Bioinformatics publication](!https://doi.org/10.1093/bioinformatics/btaa432)
 
-# Overview
-
-**CATT**(**C**har**A**cterzing **T**CR reper**t**oires) is a tool for detecting CDR3 sequences from any TCR containing raw sequencing data (including TCR-seq, RNA-seq, scRNA-seq and any TCR contained sequencing data)
-
-The tool has the following feature:
-
-- One-button: CATT employs a totally data-driven algorithm, which is self-adaption to input data without any additional parameters.
-- Precisely and efficiently extract T cell CDR3 sequences from most types of TCR containing raw sequencing data. Based on specially designed assembly, CATT could recover more CDR3 sequences than other tools even from short reads.
-- Easy installation: Using Docker, CATT can be installed in any platform in one command.
-
-![](Screen_Shot_2019-09-04_at_5-5094b6d1-b8d1-48fb-9454-18a2c8322384.23.34_PM.png)
-
-*Overview of the core algorithm of CATT. (A) Candidate CDR3 detection. All reads are aligned to V and J reference genes to select out candidate (brown) reads for micro-assembly. Potential CDR3 sequences were reconstruct by k-1 overlapped k-mers using k-mer frequency based greedy-feasible-flow algorithm. (B) Error correction. The motif criteria from IMGT project were employed to identify putative CDR3 sequences in directly found and assembled CDR3 sequences. CATT eliminates the erroneous CDR3 sequences using a data-driven transition-probability learning algorithms, which retrieves the probability of erroneous CDR3s from the observed CDR3 distribution and merges erroneous sequences (red) according to transition rates based on frequency and Hamming distance between the root and leaf sequences in the same subgroup. (C) Annotation and confidence assessment. After error correction, CATT employs a Bayes classification algorithm to assess the reliability of CDR3 sequences (differ from other protein-coding genes).* 
 
 ### Newly update
+
+Version 2.0.0 (2023-04)
+
+* Bugs fixed
+* Update BioSequence.jl to 3.X
+* Remove supprt for TRB-CDR2 and TRB-CDR1 identification
+
 
 ---
 
@@ -74,7 +72,6 @@ Version 1.6 (2020-01)
 * Reduce the startup time
 
   
-
 Version 1.4 (2019-10)
 
 - Add support for TCR CDR3 profiling for Pig
@@ -85,11 +82,7 @@ Version 1.4 (2019-10)
 
   | Chain-Region | Homo spanies | Mus musculus | Sus scrofa |
   | ------------ | ------------ | ------------ | ---------- |
-  | TRA - CDR1   | Yes          |              |            |
-  | TRA - CDR2   | Yes          |              |            |
   | TRA - CDR3   | Yes          |              |            |
-  | TRB - CDR1   | Yes          |              |            |
-  | TRB - CDR2   | Yes          | Yes          |            |
   | TRB - CDR3   | Yes          | Yes          | Yes        |
   | IGH - CDR3   | Yes          |              |            |
 
@@ -144,16 +137,24 @@ To run CATT stand-alone, some packages and softwares are needed:
   * XAM
   * DataStructures
 * BWA
-* Samtools (recommand > v1.7, some issuss may occurs in lower version)
+* Samtools (recommand > v1.7, some issuss may occurs in lower version, etc 1.4 not support `-t` option in `samtools sort`)
 
 We recommand install the packages by conda like:
 ```Shell
 # create conda envrioment and install tools
-conda install python julia samtools bwa -c bioconda -c conda-forge
+conda install python julia 'samtools>=1.8' bwa -c bioconda -c conda-forge
 # install julia packages
 julia -e 'using Pkg; Pkg.add(["DataFrames", "CSV", "GZip", "BioAlignments", "BioSequences", "FASTX",  "XAM", "DataStructures", "Kmers"])'
 
-#### Configure
+Build the index for `bwa`
+```
+bwa index resource/TR/hs/*.fa
+# and do for othere species if necessary
+bwa index resource/TR/ms/*.fa
+bwa index resource/TR/pig*.fa
+```
+
+#### Optional Configure
 
 In `reference.jl` file:
 
@@ -171,16 +172,12 @@ export PATH="/path/to/catt:$PATH"
 
 ### Test sample
 
-We prepared a sample file ([testSample.fq](https://github.com/GuoBioinfoLab/CATT/blob/master/testSample.fq), can be downloaded from Github) for user test their installation and illustrating the CATT usage.  **Enter the folder contain the sample file and then run command:**
+We prepared a sample file ([testSample.fq](https://github.com/GuoBioinfoLab/CATT/blob/master/testSample.fq), can be downloaded from Github) for user to test their installation and illustrating the CATT usage.  **Enter the folder contain the sample file and then run command:**
 
 ```Shell
-# Docker image
-docker run -it --rm -v $PWD:/output -w /output guobioinfolab/catt \
 catt -f testSample.fq -o testSampleOutput -t 2
-
-# Source code
-catt -f testSample.fq -o testSampleOutput -t 2
-
+#or 
+python catt -f testSample.fq -o testSampleOutput -t 2
 ```
 If all goes well, a CSV format file with name testSampleOutput.TRB.CDR3.CATT.csv should be created in current folder.
 
@@ -247,9 +244,8 @@ As current version of Julia (v1.1) have a long startup time (~3s, will be fixed 
 
 ### 10X format data
 
-As 10X sequencing becoming popular nowadays, we add the support for processing 10X scTCR-Seq data (In our evaluation, current 10X scRNA-seq is not suitable for TCR profiling, the reads number and length is under the minimum requirements). CATT will automatically read data, trim UMI, and do TCR profiling. (only support for the current version scTCR toolkit, 150bp paired-end, the first 16bp of Read1 is UMI and barcode sequence). CATT will output TCR for every cell (every barcode), in which some might be empty cell or derived from barcode error. User need to filter out such cells themself. 
+We have developed another tool DeRR for **Single-Cell** sequencing data, it is no longer recommend using CATT to do such analysis. see: https://github.com/GuoBioinfoLab/DeRR
 
-    catt [option] --tenX --f1 R1 --f2 R2 -o outputName
 
 # Output explain
 
