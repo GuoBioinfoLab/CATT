@@ -120,7 +120,7 @@ This command will pull down the CATT from the docker hub (about ~5min needed to 
 CATT is written in Julia and python. Download the latest verison and accompanying files from by
 
 ```shell
-git clone https://github.com/GuoBioinfoLab/CATT.git
+git clone --depth 1 https://github.com/GuoBioinfoLab/CATT.git
 ```
 
 #### Pre-requisites
@@ -146,22 +146,24 @@ We recommand install the packages by conda like:
 conda install python julia 'samtools>=1.8' bwa -c bioconda -c conda-forge
 # install julia packages
 julia -e 'using Pkg; Pkg.add(["DataFrames", "CSV", "GZip", "BioAlignments", "BioSequences", "FASTX",  "XAM", "DataStructures", "Kmers"])'
+```
 
-# Build the index for `bwa`
+### Build the index for `bwa`
+```
 bwa index resource/TR/hs/*.fa
 # and do for othere species if necessary
 # bwa index resource/TR/ms/*.fa
 # bwa index resource/TR/pig/*.fa
 ```
 
-#### Optional Configure
+### Software path Configure
 
-In `reference.jl` file:
+Two software paths need to be set in `reference.jl` file:
 
 * bwa_path: The executive file path of bwa, like `/usr/bin/bwa`. If the bwa is in the $PATH, this can be simply set as `bwa`
 * Samtools_path: The executive file path of samtools, If the samtools is in the $PATH, this can be simply set as `samtools`
 
-make `catt` executable and add it to global variable
+### make `catt` executable and add it to global variable
 
 ```Shell
 #make it executable
