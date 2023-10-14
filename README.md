@@ -109,6 +109,7 @@ CATT can also be installed using **Docker**, Docker is a computer program that p
 1. Download and install Docker, recommend from [Hompage](https://www.docker.com) (required ubuntu ≥ 14.04 )
 
 2. Download latest CATT docker image
+   
 ```Shell
 docker pull guobioinfolab/catt:latest
 ```
@@ -146,12 +147,11 @@ conda install python julia 'samtools>=1.8' bwa -c bioconda -c conda-forge
 # install julia packages
 julia -e 'using Pkg; Pkg.add(["DataFrames", "CSV", "GZip", "BioAlignments", "BioSequences", "FASTX",  "XAM", "DataStructures", "Kmers"])'
 
-Build the index for `bwa`
-```
+# Build the index for `bwa`
 bwa index resource/TR/hs/*.fa
 # and do for othere species if necessary
-bwa index resource/TR/ms/*.fa
-bwa index resource/TR/pig*.fa
+# bwa index resource/TR/ms/*.fa
+# bwa index resource/TR/pig/*.fa
 ```
 
 #### Optional Configure
