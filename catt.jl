@@ -44,7 +44,7 @@ function map2align(input_file::String, ref::String, fasta_flag::Cmd, prefix::Str
         stdout=pipeline(
             `$samtools_path sort -O SAM -t AS -l 0 -@ $threads`,
             `$samtools_path view -F 2308`,
-            `tail -r`,
+            `tac`,
             `awk -F ' ' '!a[$1]++'`,
             `$samtools_path view -h -T $ref`,
             "$prefix.sam"
