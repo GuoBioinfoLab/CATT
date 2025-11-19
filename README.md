@@ -16,7 +16,7 @@ CATT employs a completely data-driven algorithm that is self-adaptive to input d
 
 The tool can be found in:
 
-- HomePage: [http://bioinfo.life.hust.edu.cn/CATT](http://bioinfo.life.hust.edu.cn/CATT/Homepage.html)
+- HomePage: [https://guolab.wchscu.cn/CATT/Homepage.html](https://guolab.wchscu.cn/CATT/Homepage.html)
 - Github: [https://github.com/GuoBioinfoLab/CATT](https://github.com/GuoBioinfoLab/CATT)
 - For detials please see our [Bioinformatics publication](!https://doi.org/10.1093/bioinformatics/btaa432)
 
